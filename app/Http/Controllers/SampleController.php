@@ -6,6 +6,7 @@ use App\Models\WorkOrder;
 use App\Models\Sample;
 use App\Models\SampleTest;
 use App\Models\TestParameter;
+use App\Models\Client;
 use App\Services\InvoiceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,29 +16,26 @@ class SampleController extends Controller
     public function index()
     {
         $this->checkPermission('canViewWorkOrders');
-        $workOrders = WorkOrder::with('samples', 'creator')->orderBy('created_at', 'desc')->get();
+        $workOrders = WorkOrder::with('samples', 'creator', 'client')->orderBy('created_at', 'desc')->get();
         return view('samples.index', compact('workOrders'));
     }
 
-    /**
-     * Show the form for creating a new work order.
-     * Now passes test parameters to the view for dropdown.
-     */
     public function create()
     {
         $this->checkPermission('canCreateWorkOrder');
+        $clients = Client::where('is_active', true)->orderBy('name')->get();
         $testParameters = TestParameter::orderBy('code')->get();
-        return view('samples.create', compact('testParameters'));
+        return view('samples.create', compact('clients', 'testParameters'));
     }
 
     public function store(Request $request)
     {
         $this->checkPermission('canCreateWorkOrder');
 
-        // Validation
         $validated = $request->validate([
             // Work Order
-            'client_name' => 'required|string|max:255',
+            'client_id' => 'nullable|exists:clients,id',
+            'client_name' => 'nullable|string|max:255',
             'client_email' => 'nullable|email',
             'client_phone' => 'nullable|string|max:20',
             'client_organization' => 'nullable|string|max:255',
@@ -61,7 +59,7 @@ class SampleController extends Controller
             'sample_condition' => 'nullable|string',
             'sample_quantity' => 'nullable|numeric',
             'quantity_unit' => 'nullable|string',
-            // Tests – the form now sends test data with test_name, test_code, etc.
+            // Tests
             'tests' => 'required|array|min:1',
             'tests.*.test_name' => 'required|string',
             'tests.*.test_code' => 'nullable|string',
@@ -70,17 +68,25 @@ class SampleController extends Controller
             'tests.*.unit' => 'nullable|string',
             'tests.*.method' => 'nullable|string',
             'tests.*.reference_method' => 'nullable|string',
+            'tests.*.detection_limit' => 'nullable|numeric',
+            'tests.*.quantification_limit' => 'nullable|numeric',
             'tests.*.price' => 'nullable|numeric|min:0',
-            // Note: test_parameter_id is optional – we don't need to validate it as it's only used for auto-fill.
         ]);
+
+        // If client_id is provided, use client data from the Client model
+        $client = null;
+        if ($validated['client_id']) {
+            $client = Client::find($validated['client_id']);
+        }
 
         // Create Work Order
         $workOrder = WorkOrder::create([
             'wo_number' => WorkOrder::generateWONumber(),
-            'client_name' => $validated['client_name'],
-            'client_email' => $validated['client_email'],
-            'client_phone' => $validated['client_phone'],
-            'client_organization' => $validated['client_organization'],
+            'client_id' => $validated['client_id'],
+            'client_name' => $client ? $client->name : $validated['client_name'],
+            'client_email' => $client ? $client->email : $validated['client_email'],
+            'client_phone' => $client ? $client->phone : $validated['client_phone'],
+            'client_organization' => $client ? $client->organization : $validated['client_organization'],
             'project_description' => $validated['project_description'],
             'order_date' => $validated['order_date'],
             'expected_completion_date' => $validated['expected_completion_date'],
@@ -113,9 +119,7 @@ class SampleController extends Controller
         // Create Tests
         $total = 0;
         foreach ($validated['tests'] as $testData) {
-            // Remove any test_parameter_id if it exists, as it's not stored in sample_tests yet.
             unset($testData['test_parameter_id']);
-
             $test = $sample->tests()->create($testData);
             $total += $testData['price'] ?? 0;
             $test->result()->create(['status' => 'pending']);
@@ -132,7 +136,7 @@ class SampleController extends Controller
     public function show(WorkOrder $workOrder)
     {
         $this->checkPermission('canViewWorkOrders');
-        $workOrder->load('samples.tests.result', 'invoice', 'report');
+        $workOrder->load('samples.tests.result', 'invoice', 'report', 'client');
         return view('samples.show', compact('workOrder'));
     }
 
@@ -140,14 +144,16 @@ class SampleController extends Controller
     {
         $this->checkPermission('canEditWorkOrder');
         $workOrder->load('samples.tests');
-        return view('samples.edit', compact('workOrder'));
+        $clients = Client::where('is_active', true)->orderBy('name')->get();
+        return view('samples.edit', compact('workOrder', 'clients'));
     }
 
     public function update(Request $request, WorkOrder $workOrder)
     {
         $this->checkPermission('canEditWorkOrder');
         $validated = $request->validate([
-            'client_name' => 'required|string|max:255',
+            'client_id' => 'nullable|exists:clients,id',
+            'client_name' => 'nullable|string|max:255',
             'client_email' => 'nullable|email',
             'client_phone' => 'nullable|string|max:20',
             'client_organization' => 'nullable|string|max:255',
@@ -157,7 +163,26 @@ class SampleController extends Controller
             'priority' => 'required|in:low,medium,high',
             'status' => 'required|in:draft,submitted,in_progress,completed,cancelled',
         ]);
-        $workOrder->update($validated);
+
+        // If client_id is provided, use client data from the Client model
+        $client = null;
+        if ($validated['client_id']) {
+            $client = Client::find($validated['client_id']);
+        }
+
+        $workOrder->update([
+            'client_id' => $validated['client_id'],
+            'client_name' => $client ? $client->name : $validated['client_name'],
+            'client_email' => $client ? $client->email : $validated['client_email'],
+            'client_phone' => $client ? $client->phone : $validated['client_phone'],
+            'client_organization' => $client ? $client->organization : $validated['client_organization'],
+            'project_description' => $validated['project_description'],
+            'order_date' => $validated['order_date'],
+            'expected_completion_date' => $validated['expected_completion_date'],
+            'priority' => $validated['priority'],
+            'status' => $validated['status'],
+        ]);
+
         return redirect()->route('samples.show', $workOrder)->with('success', 'Work Order updated.');
     }
 

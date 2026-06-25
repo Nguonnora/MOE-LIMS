@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TestParameterController;
+use App\Http\Controllers\ClientController;
 use App\Models\TestParameter;
 use Illuminate\Support\Facades\Route;
 
@@ -52,6 +53,8 @@ Route::middleware('auth')->group(function () {
 
     // Admin-only routes
     Route::middleware(['admin'])->group(function () {
+        Route::resource('clients', ClientController::class);
+        Route::get('clients/search', [ClientController::class, 'search'])->name('clients.search');
         Route::resource('test-parameters', TestParameterController::class);
         Route::resource('users', UserController::class);
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
