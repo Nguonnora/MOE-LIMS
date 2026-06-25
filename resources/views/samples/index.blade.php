@@ -1,0 +1,42 @@
+@extends('layouts.app')
+@section('title', 'Work Orders')
+@section('content')
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Work Orders</h2>
+    @if(in_array(auth()->user()->role, ['admin','technician','receptionist']))
+        <a href="{{ route('samples.create') }}" class="btn btn-success"><i class="fas fa-plus"></i> New Work Order</a>
+    @endif
+</div>
+<div class="card">
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead><tr><th>WO #</th><th>Client</th><th>Order Date</th><th>Priority</th><th>Status</th><th>Samples</th><th>Total</th><th>Actions</th></tr></thead>
+            <tbody>
+                @forelse($workOrders as $wo)
+                <tr>
+                    <td><strong>{{ $wo->wo_number }}</strong></td>
+                    <td>{{ $wo->client_name }}</td>
+                    <td>{{ $wo->order_date->format('d/m/Y') }}</td>
+                    <td><span class="badge bg-{{ $wo->priority == 'high' ? 'danger' : ($wo->priority == 'medium' ? 'warning' : 'info') }}">{{ ucfirst($wo->priority) }}</span></td>
+                    <td><span class="badge bg-{{ $wo->status == 'completed' ? 'success' : ($wo->status == 'cancelled' ? 'danger' : 'primary') }}">{{ ucfirst($wo->status) }}</span></td>
+                    <td>{{ $wo->samples->count() }}</td>
+                    <td>${{ number_format($wo->total_amount, 2) }}</td>
+                    <td>
+                        <a href="{{ route('samples.show', $wo) }}" class="btn btn-sm btn-info">View</a>
+                        @if(in_array(auth()->user()->role, ['admin','technician']))
+                            <a href="{{ route('samples.edit', $wo) }}" class="btn btn-sm btn-warning">Edit</a>
+                            <form action="{{ route('samples.destroy', $wo) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this work order?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                            </form>
+                        @endif
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="8" class="text-center">No work orders.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+@endsection
