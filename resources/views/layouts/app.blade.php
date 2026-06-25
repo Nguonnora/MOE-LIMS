@@ -18,7 +18,21 @@
         .navbar-custom .dropdown-item:hover { background: #e8f5e9; }
         .sidebar-toggle { background: transparent; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; margin-right: 10px; }
         .sidebar-toggle:focus { outline: none; }
-        .sidebar { position: fixed; top: 56px; left: 0; bottom: 0; width: 260px; background: #1b5e20; padding: 20px 0; transition: width 0.3s, transform 0.3s; z-index: 1040; overflow: hidden; box-shadow: 2px 0 8px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        .sidebar {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            bottom: 0;
+            width: 260px;
+            background: #1b5e20;
+            padding: 20px 0;
+            transition: width 0.3s, transform 0.3s;
+            z-index: 1040;
+            overflow: hidden;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
         .sidebar.icon-only { width: 70px; }
         .sidebar.icon-only .nav-link span { display: none; }
         .sidebar.icon-only .nav-link { text-align: center; padding: 10px 0; }
@@ -30,18 +44,34 @@
         .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #2e7d32; color: #fff; }
         .sidebar .nav-link i { width: 24px; text-align: center; margin-right: 10px; }
         .sidebar-footer { padding: 15px 20px; border-top: 1px solid #2e7d32; color: #a5d6a7; font-size: 0.8rem; text-align: center; white-space: nowrap; overflow: hidden; }
-        .main-content { margin-left: 260px; padding: 86px 30px 30px; transition: margin-left 0.3s; background: #f0f7f0; min-height: calc(100vh - 56px); }
+        .main-content {
+            margin-left: 260px;
+            padding: 86px 30px 30px;
+            transition: margin-left 0.3s ease;
+            background: #f0f7f0;
+            min-height: calc(100vh - 56px);
+        }
         .main-content.icon-only { margin-left: 70px; }
         .main-content.closed { margin-left: 0; }
-        .sidebar-overlay { position: fixed; top: 56px; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 1030; display: none; }
+        .sidebar-overlay {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 1030;
+            display: none;
+        }
         .sidebar-overlay.active { display: block; }
         @media (max-width: 768px) {
-            .sidebar { width: 260px; transform: translateX(-100%); }
+            .sidebar { width: 280px; transform: translateX(-100%); }
             .sidebar.open { transform: translateX(0); }
             .sidebar.icon-only { width: 70px; transform: translateX(0); }
             .sidebar.icon-only .nav-link span { display: none; }
-            .main-content { margin-left: 0 !important; padding-top: 86px; }
+            .main-content { margin-left: 0 !important; padding: 76px 15px 20px; }
             .main-content.closed { margin-left: 0; }
+            .main-content.icon-only { margin-left: 0; }
         }
         .card-header { background: #a5d6a7; color: #1b3b1a; font-weight: bold; }
         .btn-success { background: #388e3c; border-color: #2e7d32; }
@@ -54,6 +84,7 @@
         .badge-pending { background: #9e9e9e; }
         .badge-entered { background: #ffa726; }
         .badge-rejected { background: #f44336; }
+        .table-responsive { overflow-x: auto; }
     </style>
 </head>
 <body>
@@ -61,7 +92,9 @@
         <div class="container-fluid">
             <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
             <a class="navbar-brand" href="{{ route('dashboard') }}">
-                <img src="{{ asset('images/moe-logo.png') }}" alt="MOE"> MOE LIMS
+                <img src="{{ asset('images/moe-logo.png') }}" alt="MOE" onerror="this.style.display='none';">
+                <i class="fas fa-leaf" style="color:#fff; font-size:1.5rem; display:none;" id="logoFallback"></i>
+                MOE LIMS
             </a>
             <ul class="navbar-nav ms-auto">
                 @auth
@@ -116,8 +149,8 @@
     </div>
 
     <div class="main-content" id="mainContent">
-        @if(session('success')) <div class="alert alert-success">{{ session('success') }}</div> @endif
-        @if(session('error')) <div class="alert alert-danger">{{ session('error') }}</div> @endif
+        @if(session('success')) <div class="alert alert-success alert-dismissible fade show" role="alert">{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> @endif
+        @if(session('error')) <div class="alert alert-danger alert-dismissible fade show" role="alert">{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> @endif
         @yield('content')
     </div>
 
