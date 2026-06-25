@@ -11,7 +11,6 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    // Permission helpers
     protected function canViewWorkOrders()
     {
         return in_array(auth()->user()->role, ['admin', 'technician', 'approver', 'receptionist', 'viewer']);
@@ -57,7 +56,6 @@ class Controller extends BaseController
         return auth()->user()->role == 'admin';
     }
 
-    // Generic check and abort
     protected function checkPermission($method, $message = 'Unauthorized')
     {
         if (!method_exists($this, $method) || !$this->$method()) {

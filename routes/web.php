@@ -27,7 +27,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Work Orders (full resource)
-    Route::resource('samples', SampleController::class);
+    Route::resource('samples', SampleController::class)->parameters([
+    'samples' => 'workOrder'
+    ]);
 
     // Test results entry
     Route::get('samples/{sample}/tests', [TestResultController::class, 'index'])->name('samples.tests.index');
