@@ -95,16 +95,6 @@
             color: #4e4e4e;
         }
 
-        .login-card .forgot-link {
-            color: #2e7d32;
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-
-        .login-card .forgot-link:hover {
-            text-decoration: underline;
-        }
-
         .login-card .alert {
             border-radius: 50px;
         }
@@ -125,7 +115,6 @@
             text-decoration: underline;
         }
 
-        /* Responsive */
         @media (max-width: 480px) {
             .login-card {
                 padding: 30px 20px;
@@ -180,7 +169,7 @@
                 <input id="password" type="password" class="form-control" name="password" required placeholder="••••••••">
             </div>
 
-            <!-- Remember Me & Forgot Password -->
+            <!-- Remember Me (only) – removed "Forgot password" link -->
             <div class="mb-3 d-flex justify-content-between align-items-center">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" name="remember" id="remember">
@@ -188,11 +177,7 @@
                         {{ __('Remember me') }}
                     </label>
                 </div>
-                @if (Route::has('password.request'))
-                    <a class="forgot-link" href="{{ route('password.request') }}">
-                        {{ __('Forgot password?') }}
-                    </a>
-                @endif
+                <!-- Removed the "Forgot password?" link -->
             </div>
 
             <button type="submit" class="btn-login">
@@ -207,11 +192,10 @@
         </div>
     </div>
 
-    <!-- Bootstrap JS (optional, but needed for some interactive elements) -->
+    <!-- Bootstrap JS (optional) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // If the logo image fails to load, show the fallback icon
         document.addEventListener('DOMContentLoaded', function() {
             const img = document.querySelector('.logo img');
             const fallback = document.getElementById('logoFallback');
