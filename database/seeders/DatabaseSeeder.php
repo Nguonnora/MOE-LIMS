@@ -12,5 +12,12 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             SampleSeeder::class,
         ]);
+
+        $this->call([
+    UserSeeder::class,
+    TestParameterSeeder::class,
+    SampleSeeder::class,
+]);
     }
+
 }

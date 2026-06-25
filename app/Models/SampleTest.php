@@ -32,4 +32,9 @@ class SampleTest extends Model
     {
         return $this->hasOne(TestResult::class);
     }
+
+    public function testParameter()
+    {
+    return $this->belongsTo(TestParameter::class);
+    }
 }

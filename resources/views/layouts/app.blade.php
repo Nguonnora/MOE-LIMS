@@ -136,6 +136,9 @@
                     </a>
                 @endif
                 @if(auth()->user()->role == 'admin')
+                    <a class="nav-link {{ request()->routeIs('test-parameters.*') ? 'active' : '' }}" href="{{ route('test-parameters.index') }}">
+                        <i class="fas fa-flask"></i> <span>Test Parameters</span>
+                    </a>
                     <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
                         <i class="fas fa-users"></i> <span>Users</span>
                     </a>
