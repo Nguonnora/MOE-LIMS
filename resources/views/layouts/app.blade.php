@@ -16,8 +16,23 @@
         .navbar-custom .nav-link:hover { color: #fff !important; }
         .navbar-custom .dropdown-menu { background: #fff; border: none; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         .navbar-custom .dropdown-item:hover { background: #e8f5e9; }
-        .sidebar-toggle { background: transparent; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; margin-right: 10px; }
-        .sidebar-toggle:focus { outline: none; }
+
+        .sidebar-toggle, .pin-toggle {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 1.3rem;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+        .sidebar-toggle:focus, .pin-toggle:focus { outline: none; }
+        .pin-toggle:hover { color: #a5d6a7; }
+        .pin-toggle.pinned { color: #ffd54f; }
+
+        @media (max-width: 768px) {
+            .pin-toggle { display: none; }
+        }
+
         .sidebar {
             position: fixed;
             top: 56px;
@@ -26,24 +41,76 @@
             width: 260px;
             background: #1b5e20;
             padding: 20px 0;
-            transition: width 0.3s, transform 0.3s;
             z-index: 1040;
             overflow: hidden;
             box-shadow: 2px 0 8px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
+            transition: width 0.3s ease, transform 0.3s ease;
         }
-        .sidebar.icon-only { width: 70px; }
-        .sidebar.icon-only .nav-link span { display: none; }
-        .sidebar.icon-only .nav-link { text-align: center; padding: 10px 0; }
-        .sidebar.icon-only .nav-link i { margin-right: 0; font-size: 1.4rem; }
-        .sidebar.icon-only .sidebar-footer p { display: none; }
-        .sidebar.closed { transform: translateX(-100%); }
-        .sidebar .nav { flex: 1; flex-direction: column; padding: 0 10px; }
-        .sidebar .nav-link { color: #c8e6c9; padding: 10px 15px; border-radius: 8px; margin-bottom: 5px; transition: background 0.2s; white-space: nowrap; overflow: hidden; }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #2e7d32; color: #fff; }
-        .sidebar .nav-link i { width: 24px; text-align: center; margin-right: 10px; }
-        .sidebar-footer { padding: 15px 20px; border-top: 1px solid #2e7d32; color: #a5d6a7; font-size: 0.8rem; text-align: center; white-space: nowrap; overflow: hidden; }
+        .sidebar.collapsed {
+            width: 70px;
+        }
+        .sidebar.collapsed .nav-link span,
+        .sidebar.collapsed .sidebar-footer p,
+        .sidebar.collapsed .sidebar-footer br,
+        .sidebar.collapsed .sidebar-footer small {
+            display: none;
+        }
+        .sidebar.pinned {
+            width: 260px;
+        }
+        .sidebar.pinned.collapsed {
+            width: 260px;
+        }
+
+        .sidebar .nav {
+            flex: 1;
+            flex-direction: column;
+            padding: 0 10px;
+        }
+        .sidebar .nav-link {
+            color: #c8e6c9;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            transition: background 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background: #2e7d32;
+            color: #fff;
+        }
+        .sidebar .nav-link i {
+            width: 24px;
+            text-align: center;
+            margin-right: 10px;
+        }
+        .sidebar .nav-link span {
+            font-size: 0.95rem;
+        }
+
+        .sidebar-footer {
+            padding: 10px 15px;
+            border-top: 1px solid #2e7d32;
+            color: #a5d6a7;
+            font-size: 0.7rem;
+            text-align: center;
+            white-space: normal; /* allow wrapping */
+            line-height: 1.2;
+            overflow: hidden;
+        }
+        .sidebar-footer a {
+            color: #a5d6a7;
+            text-decoration: none;
+        }
+        .sidebar-footer a:hover {
+            text-decoration: underline;
+            color: #fff;
+        }
+
         .main-content {
             margin-left: 260px;
             padding: 86px 30px 30px;
@@ -51,28 +118,52 @@
             background: #f0f7f0;
             min-height: calc(100vh - 56px);
         }
-        .main-content.icon-only { margin-left: 70px; }
-        .main-content.closed { margin-left: 0; }
-        .sidebar-overlay {
-            position: fixed;
-            top: 56px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.3);
-            z-index: 1030;
-            display: none;
+        .sidebar.collapsed ~ .main-content {
+            margin-left: 70px;
         }
-        .sidebar-overlay.active { display: block; }
+        .sidebar.pinned ~ .main-content {
+            margin-left: 260px;
+        }
+
+        .sidebar-overlay { display: none; }
+
         @media (max-width: 768px) {
-            .sidebar { width: 280px; transform: translateX(-100%); }
-            .sidebar.open { transform: translateX(0); }
-            .sidebar.icon-only { width: 70px; transform: translateX(0); }
-            .sidebar.icon-only .nav-link span { display: none; }
-            .main-content { margin-left: 0 !important; padding: 76px 15px 20px; }
-            .main-content.closed { margin-left: 0; }
-            .main-content.icon-only { margin-left: 0; }
+            .sidebar {
+                width: 280px;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .sidebar.collapsed {
+                width: 280px;
+            }
+            .sidebar.pinned {
+                width: 280px;
+            }
+            .sidebar-overlay {
+                position: fixed;
+                top: 56px;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.3);
+                z-index: 1030;
+                display: none;
+            }
+            .sidebar-overlay.active {
+                display: block;
+            }
+            .main-content {
+                margin-left: 0 !important;
+                padding: 76px 15px 20px;
+            }
+            .sidebar-footer {
+                font-size: 0.75rem; /* slightly larger on mobile */
+            }
         }
+
         .card-header { background: #a5d6a7; color: #1b3b1a; font-weight: bold; }
         .btn-success { background: #388e3c; border-color: #2e7d32; }
         .btn-success:hover { background: #2e7d32; border-color: #1b5e20; }
@@ -91,6 +182,9 @@
     <nav class="navbar navbar-expand-md navbar-custom fixed-top">
         <div class="container-fluid">
             <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+            <button class="pin-toggle" id="pinToggle" aria-label="Pin sidebar">
+                <i class="fas fa-thumbtack"></i>
+            </button>
             <a class="navbar-brand" href="{{ route('dashboard') }}">
                 <img src="{{ asset('images/moe-logo.png') }}" alt="MOE" onerror="this.style.display='none';">
                 <i class="fas fa-leaf" style="color:#fff; font-size:1.5rem; display:none;" id="logoFallback"></i>
@@ -119,26 +213,21 @@
     </nav>
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
     <div class="sidebar" id="sidebar">
         <nav class="nav flex-column">
             @auth
                 <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
                     <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
                 </a>
-
-                {{-- Work Orders – visible to all logged‑in users --}}
                 <a class="nav-link {{ request()->routeIs('samples.*') ? 'active' : '' }}" href="{{ route('samples.index') }}">
                     <i class="fas fa-clipboard-list"></i> <span>Work Orders</span>
                 </a>
-
-                {{-- Approvals – only approvers and admins --}}
                 @if(in_array(auth()->user()->role, ['admin', 'approver']))
                     <a class="nav-link {{ request()->routeIs('approvals.*') ? 'active' : '' }}" href="{{ route('approvals.pending') }}">
                         <i class="fas fa-check-double"></i> <span>Approvals</span>
                     </a>
                 @endif
-
-                {{-- Admin‑only sections --}}
                 @if(auth()->user()->role == 'admin')
                     <a class="nav-link {{ request()->routeIs('test-parameters.*') ? 'active' : '' }}" href="{{ route('test-parameters.index') }}">
                         <i class="fas fa-flask"></i> <span>Test Parameters</span>
@@ -152,12 +241,26 @@
                 @endif
             @endauth
         </nav>
-        <div class="sidebar-footer"><p>Created by: KAO NGUONNORA</p></div>
+        <div class="sidebar-footer">
+            &copy; {{ date('Y') }} <a href="https://moe.gov.kh" target="_blank">Ministry of Environment</a> – All rights reserved.
+            <br>
+            <small>Created by: KAO NGUONNORA</small>
+        </div>
     </div>
 
     <div class="main-content" id="mainContent">
-        @if(session('success')) <div class="alert alert-success alert-dismissible fade show" role="alert">{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> @endif
-        @if(session('error')) <div class="alert alert-danger alert-dismissible fade show" role="alert">{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> @endif
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
         @yield('content')
     </div>
 
@@ -165,84 +268,106 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.getElementById('sidebar');
-            const main = document.getElementById('mainContent');
             const overlay = document.getElementById('sidebarOverlay');
-            const toggle = document.getElementById('sidebarToggle');
-            let isIconOnly = false, isMobile = window.innerWidth <= 768;
+            const hamburger = document.getElementById('sidebarToggle');
+            const pinToggle = document.getElementById('pinToggle');
+            const pinIcon = pinToggle.querySelector('i');
 
-            function apply() {
-                if (isMobile) {
-                    if (sidebar.classList.contains('open')) {
-                        sidebar.classList.remove('icon-only');
-                        main.classList.remove('icon-only','closed');
-                        overlay.classList.add('active');
-                    } else {
-                        sidebar.classList.remove('icon-only','open');
-                        main.classList.add('closed');
-                        overlay.classList.remove('active');
-                    }
+            let isMobile = window.innerWidth <= 768;
+
+            function updatePinIcon() {
+                if (sidebar.classList.contains('pinned')) {
+                    pinIcon.className = 'fas fa-thumbtack';
+                    pinToggle.classList.add('pinned');
                 } else {
-                    if (isIconOnly) {
-                        sidebar.classList.add('icon-only');
-                        main.classList.add('icon-only');
-                        main.classList.remove('closed');
-                        sidebar.classList.remove('closed','open');
-                    } else {
-                        sidebar.classList.remove('icon-only');
-                        main.classList.remove('icon-only','closed');
-                        sidebar.classList.remove('closed','open');
-                    }
-                    overlay.classList.remove('active');
+                    pinIcon.className = 'fas fa-thumbtack-slash';
+                    pinToggle.classList.remove('pinned');
                 }
             }
 
-            toggle.addEventListener('click', function() {
+            hamburger.addEventListener('click', function(e) {
+                e.stopPropagation();
                 if (isMobile) {
                     sidebar.classList.toggle('open');
-                    apply();
-                } else {
-                    isIconOnly = !isIconOnly;
-                    apply();
+                    overlay.classList.toggle('active');
+                    return;
                 }
+
+                if (sidebar.classList.contains('pinned')) {
+                    sidebar.classList.remove('pinned');
+                    sidebar.classList.add('collapsed');
+                    localStorage.setItem('sidebarPinned', 'false');
+                } else {
+                    sidebar.classList.toggle('collapsed');
+                }
+                updatePinIcon();
+            });
+
+            pinToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (isMobile) return;
+
+                if (sidebar.classList.contains('pinned')) {
+                    sidebar.classList.remove('pinned');
+                    sidebar.classList.remove('collapsed');
+                    localStorage.setItem('sidebarPinned', 'false');
+                } else {
+                    sidebar.classList.add('pinned');
+                    sidebar.classList.remove('collapsed');
+                    localStorage.setItem('sidebarPinned', 'true');
+                }
+                updatePinIcon();
             });
 
             overlay.addEventListener('click', function() {
-                if (isMobile) {
+                if (sidebar.classList.contains('open')) {
                     sidebar.classList.remove('open');
-                    apply();
+                    overlay.classList.remove('active');
                 }
             });
 
-            window.addEventListener('resize', function() {
-                const newMobile = window.innerWidth <= 768;
-                if (newMobile !== isMobile) {
-                    isMobile = newMobile;
+            document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+                link.addEventListener('click', function() {
                     if (isMobile) {
-                        sidebar.classList.remove('icon-only','open');
-                        main.classList.remove('icon-only');
-                        main.classList.add('closed');
-                        overlay.classList.remove('active');
-                    } else {
-                        isIconOnly = false;
-                        sidebar.classList.remove('icon-only','open','closed');
-                        main.classList.remove('icon-only','closed');
+                        sidebar.classList.remove('open');
                         overlay.classList.remove('active');
                     }
-                    apply();
-                }
+                });
             });
 
-            isMobile = window.innerWidth <= 768;
-            if (isMobile) {
-                sidebar.classList.remove('icon-only','open');
-                main.classList.add('closed');
-                overlay.classList.remove('active');
+            const savedPin = localStorage.getItem('sidebarPinned');
+            if (savedPin === 'true' && !isMobile) {
+                sidebar.classList.add('pinned');
+                sidebar.classList.remove('collapsed');
             } else {
-                isIconOnly = false;
-                sidebar.classList.remove('icon-only','open','closed');
-                main.classList.remove('icon-only','closed');
+                sidebar.classList.remove('pinned');
+                sidebar.classList.remove('collapsed');
             }
-            apply();
+            updatePinIcon();
+
+            window.addEventListener('resize', function() {
+                isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    sidebar.classList.remove('pinned', 'collapsed');
+                    if (!sidebar.classList.contains('open')) {
+                        overlay.classList.remove('active');
+                    }
+                } else {
+                    if (sidebar.classList.contains('open')) {
+                        sidebar.classList.remove('open');
+                        overlay.classList.remove('active');
+                    }
+                    const saved = localStorage.getItem('sidebarPinned');
+                    if (saved === 'true') {
+                        sidebar.classList.add('pinned');
+                        sidebar.classList.remove('collapsed');
+                    } else {
+                        sidebar.classList.remove('pinned');
+                        sidebar.classList.remove('collapsed');
+                    }
+                    updatePinIcon();
+                }
+            });
         });
     </script>
     @stack('scripts')

@@ -21,16 +21,31 @@ class WorkOrder extends Model
         'expected_completion_date' => 'date',
     ];
 
+    // Relationship with samples (one work order has many samples)
     public function samples()
     {
         return $this->hasMany(Sample::class);
     }
 
+    // Relationship with invoice (one work order has one invoice)
+    public function invoice()
+    {
+        return $this->hasOne(Invoice::class);
+    }
+
+    // Relationship with report (one work order has one report)
+    public function report()
+    {
+        return $this->hasOne(Report::class);
+    }
+
+    // Relationship with user who created this work order
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    // Generate work order number
     public static function generateWONumber()
     {
         $last = self::orderBy('id', 'desc')->first();
