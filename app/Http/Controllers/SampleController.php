@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\WorkOrder;
 use App\Models\Sample;
 use App\Models\SampleTest;
+use App\Models\TestParameter;
 use App\Services\InvoiceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,16 +19,22 @@ class SampleController extends Controller
         return view('samples.index', compact('workOrders'));
     }
 
+    /**
+     * Show the form for creating a new work order.
+     * Now passes test parameters to the view for dropdown.
+     */
     public function create()
     {
         $this->checkPermission('canCreateWorkOrder');
-        return view('samples.create');
+        $testParameters = TestParameter::orderBy('code')->get();
+        return view('samples.create', compact('testParameters'));
     }
 
     public function store(Request $request)
     {
         $this->checkPermission('canCreateWorkOrder');
 
+        // Validation
         $validated = $request->validate([
             // Work Order
             'client_name' => 'required|string|max:255',
@@ -54,7 +61,7 @@ class SampleController extends Controller
             'sample_condition' => 'nullable|string',
             'sample_quantity' => 'nullable|numeric',
             'quantity_unit' => 'nullable|string',
-            // Tests
+            // Tests – the form now sends test data with test_name, test_code, etc.
             'tests' => 'required|array|min:1',
             'tests.*.test_name' => 'required|string',
             'tests.*.test_code' => 'nullable|string',
@@ -63,11 +70,11 @@ class SampleController extends Controller
             'tests.*.unit' => 'nullable|string',
             'tests.*.method' => 'nullable|string',
             'tests.*.reference_method' => 'nullable|string',
-            'tests.*.detection_limit' => 'nullable|numeric',
-            'tests.*.quantification_limit' => 'nullable|numeric',
             'tests.*.price' => 'nullable|numeric|min:0',
+            // Note: test_parameter_id is optional – we don't need to validate it as it's only used for auto-fill.
         ]);
 
+        // Create Work Order
         $workOrder = WorkOrder::create([
             'wo_number' => WorkOrder::generateWONumber(),
             'client_name' => $validated['client_name'],
@@ -82,6 +89,7 @@ class SampleController extends Controller
             'created_by' => Auth::id(),
         ]);
 
+        // Create Sample
         $sample = $workOrder->samples()->create([
             'sample_code' => Sample::generateSampleCode($workOrder->id),
             'sample_type' => $validated['sample_type'],
@@ -102,14 +110,19 @@ class SampleController extends Controller
             'status' => 'received',
         ]);
 
+        // Create Tests
         $total = 0;
         foreach ($validated['tests'] as $testData) {
+            // Remove any test_parameter_id if it exists, as it's not stored in sample_tests yet.
+            unset($testData['test_parameter_id']);
+
             $test = $sample->tests()->create($testData);
             $total += $testData['price'] ?? 0;
             $test->result()->create(['status' => 'pending']);
         }
         $workOrder->update(['total_amount' => $total]);
 
+        // Generate Invoice
         $invoiceService = new InvoiceService();
         $invoiceService->generateInvoice($workOrder);
 
