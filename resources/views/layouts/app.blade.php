@@ -125,16 +125,20 @@
                 <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
                     <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
                 </a>
-                @if(in_array(auth()->user()->role, ['admin','technician','receptionist']))
-                    <a class="nav-link {{ request()->routeIs('samples.*') ? 'active' : '' }}" href="{{ route('samples.index') }}">
-                        <i class="fas fa-clipboard-list"></i> <span>Work Orders</span>
-                    </a>
-                @endif
-                @if(in_array(auth()->user()->role, ['admin','approver']))
+
+                {{-- Work Orders – visible to all logged‑in users --}}
+                <a class="nav-link {{ request()->routeIs('samples.*') ? 'active' : '' }}" href="{{ route('samples.index') }}">
+                    <i class="fas fa-clipboard-list"></i> <span>Work Orders</span>
+                </a>
+
+                {{-- Approvals – only approvers and admins --}}
+                @if(in_array(auth()->user()->role, ['admin', 'approver']))
                     <a class="nav-link {{ request()->routeIs('approvals.*') ? 'active' : '' }}" href="{{ route('approvals.pending') }}">
                         <i class="fas fa-check-double"></i> <span>Approvals</span>
                     </a>
                 @endif
+
+                {{-- Admin‑only sections --}}
                 @if(auth()->user()->role == 'admin')
                     <a class="nav-link {{ request()->routeIs('test-parameters.*') ? 'active' : '' }}" href="{{ route('test-parameters.index') }}">
                         <i class="fas fa-flask"></i> <span>Test Parameters</span>

@@ -13,17 +13,21 @@ class SampleController extends Controller
 {
     public function index()
     {
+        $this->checkPermission('canViewWorkOrders');
         $workOrders = WorkOrder::with('samples', 'creator')->orderBy('created_at', 'desc')->get();
         return view('samples.index', compact('workOrders'));
     }
 
     public function create()
     {
+        $this->checkPermission('canCreateWorkOrder');
         return view('samples.create');
     }
 
     public function store(Request $request)
     {
+        $this->checkPermission('canCreateWorkOrder');
+
         $validated = $request->validate([
             // Work Order
             'client_name' => 'required|string|max:255',
@@ -114,18 +118,21 @@ class SampleController extends Controller
 
     public function show(WorkOrder $workOrder)
     {
+        $this->checkPermission('canViewWorkOrders');
         $workOrder->load('samples.tests.result', 'invoice', 'report');
         return view('samples.show', compact('workOrder'));
     }
 
     public function edit(WorkOrder $workOrder)
     {
+        $this->checkPermission('canEditWorkOrder');
         $workOrder->load('samples.tests');
         return view('samples.edit', compact('workOrder'));
     }
 
     public function update(Request $request, WorkOrder $workOrder)
     {
+        $this->checkPermission('canEditWorkOrder');
         $validated = $request->validate([
             'client_name' => 'required|string|max:255',
             'client_email' => 'nullable|email',
@@ -143,6 +150,7 @@ class SampleController extends Controller
 
     public function destroy(WorkOrder $workOrder)
     {
+        $this->checkPermission('canDeleteWorkOrder');
         $workOrder->delete();
         return redirect()->route('samples.index')->with('success', 'Work Order deleted.');
     }

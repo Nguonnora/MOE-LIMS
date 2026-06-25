@@ -15,14 +15,15 @@
                     <td>{{ $test->result->remarks ?? '' }}</td>
                     <td><span class="badge bg-{{ $test->result->status == 'approved' ? 'success' : ($test->result->status == 'entered' ? 'warning' : 'secondary') }}">{{ ucfirst($test->result->status ?? 'pending') }}</span></td>
                     <td>
-                        @if(!$test->result || $test->result->status != 'approved')
-                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#resultModal{{ $test->id }}">Enter Result</button>
+                        @if(in_array(auth()->user()->role, ['admin', 'technician']) && (!$test->result || $test->result->status != 'approved'))
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#resultModal{{ $test->id }}">Enter Result</button>
                         @endif
                     </td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
+        <a href="{{ route('samples.show', $sample->workOrder) }}" class="btn btn-secondary">Back to Work Order</a>
     </div>
 </div>
 

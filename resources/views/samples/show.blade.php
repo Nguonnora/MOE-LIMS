@@ -2,16 +2,25 @@
 @section('title', 'Work Order: ' . $workOrder->wo_number)
 @section('content')
 <div class="card">
-    <div class="card-header d-flex justify-content-between">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
         <span>Work Order: {{ $workOrder->wo_number }}</span>
-        <div>
+        <div class="d-flex flex-wrap gap-2">
             @if($workOrder->invoice)
                 <a href="{{ route('samples.show', $workOrder) }}?download_invoice=1" class="btn btn-sm btn-primary">Download Invoice</a>
             @endif
             @if($workOrder->report)
                 <a href="{{ route('reports.download', $workOrder) }}" class="btn btn-sm btn-success">Download Report</a>
-            @elseif($workOrder->status == 'approved')
+            @elseif($workOrder->status == 'approved' && in_array(auth()->user()->role, ['admin', 'approver']))
                 <a href="{{ route('reports.generate', $workOrder) }}" class="btn btn-sm btn-warning">Generate Report</a>
+            @endif
+            @if(in_array(auth()->user()->role, ['admin', 'receptionist']))
+                <a href="{{ route('samples.edit', $workOrder) }}" class="btn btn-sm btn-warning">Edit</a>
+            @endif
+            @if(auth()->user()->role == 'admin')
+                <form action="{{ route('samples.destroy', $workOrder) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this work order?')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                </form>
             @endif
             <a href="{{ route('samples.index') }}" class="btn btn-sm btn-secondary">Back</a>
         </div>
@@ -35,11 +44,22 @@
                 <dl class="row"><dt class="col-sm-4">Invoice</dt><dd class="col-sm-8">{{ $workOrder->invoice_number ?? 'Not generated' }}</dd></dl>
             </div>
         </div>
+        @if($workOrder->project_description)
+        <div class="mt-3">
+            <h5>Project Description</h5>
+            <p>{{ $workOrder->project_description }}</p>
+        </div>
+        @endif
         <hr>
         <h5>Samples ({{ $workOrder->samples->count() }})</h5>
         @forelse($workOrder->samples as $sample)
         <div class="border p-3 mb-3">
-            <h6>{{ $sample->sample_code }} - {{ $sample->sample_type }}</h6>
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                <h6>{{ $sample->sample_code }} - {{ $sample->sample_type }}</h6>
+                @if(in_array(auth()->user()->role, ['admin', 'technician']))
+                    <a href="{{ route('samples.tests.index', $sample) }}" class="btn btn-sm btn-primary">Enter Results</a>
+                @endif
+            </div>
             <p>{{ $sample->sample_description }} ({{ $sample->sample_matrix }})</p>
             @if($sample->tests->count())
             <table class="table table-sm table-bordered">
