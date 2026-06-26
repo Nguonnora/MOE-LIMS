@@ -14,13 +14,14 @@ class DashboardController extends Controller
         $totalWorkOrders = WorkOrder::count();
         $totalSamples = Sample::count();
         $pendingApprovals = TestResult::where('status', 'entered')->count();
+        $totalRevenue = WorkOrder::sum('total_amount');
 
         $statusCounts = WorkOrder::selectRaw('status, count(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status')
             ->toArray();
 
-        $recentWorkOrders = WorkOrder::with('creator', 'samples')
+        $recentWorkOrders = WorkOrder::with('client', 'samples')
             ->latest()
             ->limit(5)
             ->get();
@@ -29,6 +30,7 @@ class DashboardController extends Controller
             'totalWorkOrders',
             'totalSamples',
             'pendingApprovals',
+            'totalRevenue',
             'statusCounts',
             'recentWorkOrders'
         ));

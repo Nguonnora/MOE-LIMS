@@ -9,17 +9,17 @@ return new class extends Migration
     public function up()
     {
         Schema::create('work_orders', function (Blueprint $table) {
-            $table->engine = 'InnoDB';
             $table->id();
             $table->string('wo_number')->unique();
-            $table->string('client_name');
-            $table->string('client_email')->nullable();
-            $table->string('client_phone')->nullable();
-            $table->string('client_organization')->nullable();
+            $table->date('reception_date');
+            $table->foreignId('client_id')->constrained()->onDelete('cascade');
             $table->text('project_description')->nullable();
-            $table->date('order_date');
-            $table->date('expected_completion_date')->nullable();
+            $table->string('contact_person')->nullable();
+            $table->string('phone')->nullable();
+            $table->foreignId('purpose_id')->nullable()->constrained()->onDelete('set null');
             $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
+            $table->string('sample_matrix')->nullable();
+            $table->integer('amount_of_sample')->default(0);
             $table->enum('status', ['draft', 'submitted', 'in_progress', 'completed', 'cancelled'])->default('draft');
             $table->decimal('total_amount', 12, 2)->default(0);
             $table->string('invoice_number')->nullable();

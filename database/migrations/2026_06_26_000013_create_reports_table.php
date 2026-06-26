@@ -9,9 +9,8 @@ return new class extends Migration
     public function up()
     {
         Schema::create('reports', function (Blueprint $table) {
-            $table->engine = 'InnoDB';
             $table->id();
-            $table->unsignedBigInteger('work_order_id');
+            $table->foreignId('work_order_id')->constrained()->onDelete('cascade');
             $table->string('report_number')->unique();
             $table->date('report_date');
             $table->text('executive_summary')->nullable();
@@ -21,8 +20,6 @@ return new class extends Migration
             $table->foreignId('generated_by')->constrained('users');
             $table->string('pdf_path');
             $table->timestamps();
-
-            $table->foreign('work_order_id')->references('id')->on('work_orders')->onDelete('cascade');
         });
     }
 

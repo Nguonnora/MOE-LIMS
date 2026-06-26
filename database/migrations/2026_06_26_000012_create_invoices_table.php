@@ -9,9 +9,8 @@ return new class extends Migration
     public function up()
     {
         Schema::create('invoices', function (Blueprint $table) {
-            $table->engine = 'InnoDB';
             $table->id();
-            $table->unsignedBigInteger('work_order_id');
+            $table->foreignId('work_order_id')->constrained()->onDelete('cascade');
             $table->string('invoice_number')->unique();
             $table->date('issue_date');
             $table->date('due_date')->nullable();
@@ -22,8 +21,6 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->string('pdf_path')->nullable();
             $table->timestamps();
-
-            $table->foreign('work_order_id')->references('id')->on('work_orders')->onDelete('cascade');
         });
     }
 

@@ -9,25 +9,19 @@ return new class extends Migration
     public function up()
     {
         Schema::create('samples', function (Blueprint $table) {
-            $table->engine = 'InnoDB';
             $table->id();
             $table->foreignId('work_order_id')->constrained()->onDelete('cascade');
             $table->string('sample_code')->unique();
             $table->string('sample_type');
-            $table->string('sample_matrix')->nullable();
-            $table->string('sampling_location')->nullable();
-            $table->date('sampling_date');
-            $table->time('sampling_time')->nullable();
-            $table->string('sampling_method')->nullable();
-            $table->string('container_type')->nullable();
-            $table->string('preservation_method')->nullable();
-            $table->date('received_date');
-            $table->time('received_time')->nullable();
-            $table->string('received_by')->nullable();
             $table->text('sample_description')->nullable();
-            $table->string('sample_condition')->nullable();
-            $table->decimal('sample_quantity', 10, 2)->nullable();
-            $table->string('quantity_unit')->nullable();
+            $table->date('sampling_date');
+            $table->foreignId('province_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('district_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('commune_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('village_id')->nullable()->constrained()->onDelete('set null');
+            $table->enum('coordinate_system', ['DD', 'UTM', 'N/A'])->default('N/A');
+            $table->string('coordinate_x')->nullable(); // UTM X or Degree N
+            $table->string('coordinate_y')->nullable(); // UTM Y or Degree E
             $table->enum('status', ['received', 'in_progress', 'results_entered', 'approved', 'reported'])->default('received');
             $table->timestamps();
         });

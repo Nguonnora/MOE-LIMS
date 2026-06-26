@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WorkOrderController;
 use App\Http\Controllers\SampleController;
 use App\Http\Controllers\TestResultController;
 use App\Http\Controllers\ApprovalController;
@@ -13,45 +14,71 @@ use App\Http\Controllers\ClientController;
 use App\Models\TestParameter;
 use Illuminate\Support\Facades\Route;
 
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
+
+// Redirect root to login
 Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// Dashboard route using controller
+// Dashboard
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+// Authenticated routes
 Route::middleware('auth')->group(function () {
+
+    // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Work Orders (full resource)
-    Route::resource('samples', SampleController::class)->parameters([
-    'samples' => 'workOrder'
-    ]);
+    // ==================== WORK ORDERS ====================
+    Route::resource('work-orders', WorkOrderController::class);
+    Route::post('purposes', [WorkOrderController::class, 'storePurpose'])->name('purposes.store');
 
-    // Test results entry
+    // ==================== SAMPLE REGISTRATION ====================
+    // This handles adding samples to existing work orders
+    Route::prefix('samples')->name('samples.')->group(function () {
+        // List work orders available for sample registration
+        Route::get('/', [SampleController::class, 'index'])->name('index');
+        // Show form to add a sample to a specific work order
+        Route::get('{workOrder}/create', [SampleController::class, 'create'])->name('create');
+        // Store the sample and its tests
+        Route::post('{workOrder}', [SampleController::class, 'store'])->name('store');
+
+        // AJAX endpoints for Cambodia geo data
+        Route::get('districts/{provinceId}', [SampleController::class, 'getDistricts'])->name('districts');
+        Route::get('communes/{districtId}', [SampleController::class, 'getCommunes'])->name('communes');
+        Route::get('villages/{communeId}', [SampleController::class, 'getVillages'])->name('villages');
+    });
+
+    // ==================== TEST RESULTS ====================
+    // These routes work directly with the Sample model
     Route::get('samples/{sample}/tests', [TestResultController::class, 'index'])->name('samples.tests.index');
     Route::post('samples/{sample}/tests/{sampleTest}/result', [TestResultController::class, 'store'])->name('samples.tests.result.store');
     Route::put('samples/{sample}/tests/{sampleTest}/result', [TestResultController::class, 'update'])->name('samples.tests.result.update');
 
-    // Approvals
+    // ==================== APPROVALS ====================
     Route::get('approvals/pending', [ApprovalController::class, 'pending'])->name('approvals.pending');
     Route::post('approvals/{testResult}/approve', [ApprovalController::class, 'approve'])->name('approvals.approve');
     Route::post('approvals/{testResult}/reject', [ApprovalController::class, 'reject'])->name('approvals.reject');
 
-    // Reports
+    // ==================== REPORTS ====================
     Route::get('work-orders/{workOrder}/report', [ReportController::class, 'generate'])->name('reports.generate');
     Route::get('work-orders/{workOrder}/report/download', [ReportController::class, 'download'])->name('reports.download');
 
-    // JSON endpoint for test parameter details (used by sample create form)
+    // ==================== TEST PARAMETERS JSON ====================
     Route::get('test-parameters/{testParameter}/json', function (TestParameter $testParameter) {
         return response()->json($testParameter);
     })->name('test-parameters.json');
 
-    // Admin-only routes
+    // ==================== ADMIN-ONLY ROUTES ====================
     Route::middleware(['admin'])->group(function () {
         Route::resource('clients', ClientController::class);
         Route::get('clients/search', [ClientController::class, 'search'])->name('clients.search');
@@ -61,4 +88,5 @@ Route::middleware('auth')->group(function () {
     });
 });
 
+// Load authentication routes (login, logout, registration, password reset, etc.)
 require __DIR__.'/auth.php';

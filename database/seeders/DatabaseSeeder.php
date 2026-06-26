@@ -11,8 +11,10 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,
             ClientSeeder::class,
+            PurposeSeeder::class,
+            GeoSeeder::class,
             TestParameterSeeder::class,
-            SampleSeeder::class,
+            SampleSeeder::class, // if you have sample seeder
         ]);
     }
 }

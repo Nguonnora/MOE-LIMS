@@ -9,7 +9,6 @@ return new class extends Migration
     public function up()
     {
         Schema::create('test_results', function (Blueprint $table) {
-            $table->engine = 'InnoDB';
             $table->id();
             $table->foreignId('sample_test_id')->constrained()->onDelete('cascade');
             $table->decimal('result_value', 15, 6)->nullable();

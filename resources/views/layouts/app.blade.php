@@ -52,9 +52,7 @@
             width: 70px;
         }
         .sidebar.collapsed .nav-link span,
-        .sidebar.collapsed .sidebar-footer p,
-        .sidebar.collapsed .sidebar-footer br,
-        .sidebar.collapsed .sidebar-footer small {
+        .sidebar.collapsed .sidebar-footer p {
             display: none;
         }
         .sidebar.pinned {
@@ -98,18 +96,11 @@
             color: #a5d6a7;
             font-size: 0.7rem;
             text-align: center;
-            white-space: normal; /* allow wrapping */
+            white-space: normal;
             line-height: 1.2;
-            overflow: hidden;
         }
-        .sidebar-footer a {
-            color: #a5d6a7;
-            text-decoration: none;
-        }
-        .sidebar-footer a:hover {
-            text-decoration: underline;
-            color: #fff;
-        }
+        .sidebar-footer a { color: #a5d6a7; text-decoration: none; }
+        .sidebar-footer a:hover { text-decoration: underline; color: #fff; }
 
         .main-content {
             margin-left: 260px;
@@ -160,7 +151,7 @@
                 padding: 76px 15px 20px;
             }
             .sidebar-footer {
-                font-size: 0.75rem; /* slightly larger on mobile */
+                font-size: 0.75rem;
             }
         }
 
@@ -220,15 +211,25 @@
                 <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
                     <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
                 </a>
-                <a class="nav-link {{ request()->routeIs('samples.*') ? 'active' : '' }}" href="{{ route('samples.index') }}">
+
+                <a class="nav-link {{ request()->routeIs('work-orders.*') ? 'active' : '' }}" href="{{ route('work-orders.index') }}">
                     <i class="fas fa-clipboard-list"></i> <span>Work Orders</span>
                 </a>
+
+                <a class="nav-link {{ request()->routeIs('samples.*') ? 'active' : '' }}" href="{{ route('samples.index') }}">
+                    <i class="fas fa-vial"></i> <span>Sample Registration</span>
+                </a>
+
                 @if(in_array(auth()->user()->role, ['admin', 'approver']))
                     <a class="nav-link {{ request()->routeIs('approvals.*') ? 'active' : '' }}" href="{{ route('approvals.pending') }}">
                         <i class="fas fa-check-double"></i> <span>Approvals</span>
                     </a>
                 @endif
+
                 @if(auth()->user()->role == 'admin')
+                    <a class="nav-link {{ request()->routeIs('clients.*') ? 'active' : '' }}" href="{{ route('clients.index') }}">
+                        <i class="fas fa-address-book"></i> <span>Clients</span>
+                    </a>
                     <a class="nav-link {{ request()->routeIs('test-parameters.*') ? 'active' : '' }}" href="{{ route('test-parameters.index') }}">
                         <i class="fas fa-flask"></i> <span>Test Parameters</span>
                     </a>
@@ -292,7 +293,6 @@
                     overlay.classList.toggle('active');
                     return;
                 }
-
                 if (sidebar.classList.contains('pinned')) {
                     sidebar.classList.remove('pinned');
                     sidebar.classList.add('collapsed');
@@ -306,7 +306,6 @@
             pinToggle.addEventListener('click', function(e) {
                 e.stopPropagation();
                 if (isMobile) return;
-
                 if (sidebar.classList.contains('pinned')) {
                     sidebar.classList.remove('pinned');
                     sidebar.classList.remove('collapsed');

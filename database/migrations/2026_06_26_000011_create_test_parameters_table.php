@@ -10,17 +10,17 @@ return new class extends Migration
     {
         Schema::create('test_parameters', function (Blueprint $table) {
             $table->id();
-            $table->string('code')->unique();          // e.g., PH-001, NUT-002
-            $table->string('name');                    // Full test name
-            $table->string('category')->nullable();    // Physical, Chemical, Biological, etc.
-            $table->string('unit')->nullable();        // mg/L, pH, %, ppm, etc.
-            $table->string('method')->nullable();      // Standard method name
-            $table->string('reference_method')->nullable(); // Reference standard
+            $table->string('code')->unique();
+            $table->string('name');
+            $table->string('category')->nullable();
+            $table->string('unit')->nullable();
+            $table->string('method')->nullable();
+            $table->string('reference_method')->nullable();
             $table->decimal('detection_limit', 15, 6)->nullable();
             $table->decimal('quantification_limit', 15, 6)->nullable();
-            $table->string('accreditation')->nullable(); // ISO, etc.
+            $table->string('accreditation')->nullable();
             $table->boolean('is_subcontracted')->default(false);
-            $table->decimal('default_price', 10, 2)->default(0); // Suggested price
+            $table->decimal('default_price', 10, 2)->default(0);
             $table->text('description')->nullable();
             $table->timestamps();
         });

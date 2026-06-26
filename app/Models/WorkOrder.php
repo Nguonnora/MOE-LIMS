@@ -11,15 +11,15 @@ class WorkOrder extends Model
 
     protected $fillable = [
         'wo_number',
-        'client_id',          // added
-        'client_name',        // kept for fallback
-        'client_email',
-        'client_phone',
-        'client_organization',
+        'reception_date',
+        'client_id',
         'project_description',
-        'order_date',
-        'expected_completion_date',
+        'contact_person',
+        'phone',
+        'purpose_id',
         'priority',
+        'sample_matrix',
+        'amount_of_sample',
         'status',
         'total_amount',
         'invoice_number',
@@ -27,54 +27,55 @@ class WorkOrder extends Model
     ];
 
     protected $casts = [
-        'order_date' => 'date',
-        'expected_completion_date' => 'date',
+        'reception_date' => 'date',
     ];
 
-    // Relationship with client
     public function client()
     {
         return $this->belongsTo(Client::class);
     }
 
-    // Relationship with samples
+    public function purpose()
+    {
+        return $this->belongsTo(Purpose::class);
+    }
+
     public function samples()
     {
         return $this->hasMany(Sample::class);
     }
 
-    // Relationship with invoice
     public function invoice()
     {
         return $this->hasOne(Invoice::class);
     }
 
-    // Relationship with report
     public function report()
     {
         return $this->hasOne(Report::class);
     }
 
-    // Relationship with creator user
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    // Generate work order number
     public static function generateWONumber()
     {
-        $last = self::orderBy('id', 'desc')->first();
-        $number = $last ? intval(substr($last->wo_number, 3)) + 1 : 1;
-        return 'WO-' . str_pad($number, 6, '0', STR_PAD_LEFT);
+        $date = now()->format('ymd');
+        $last = self::where('wo_number', 'LIKE', $date . '-%')
+                    ->orderBy('wo_number', 'desc')
+                    ->first();
+        if ($last) {
+            $number = intval(substr($last->wo_number, -3)) + 1;
+        } else {
+            $number = 1;
+        }
+        return $date . '-' . str_pad($number, 3, '0', STR_PAD_LEFT);
     }
 
-    // Helper to get client display name (fallback to client_name)
     public function getClientDisplayNameAttribute()
     {
-        if ($this->client) {
-            return $this->client->display_name;
-        }
-        return $this->client_name ?? 'N/A';
+        return $this->client ? $this->client->name : 'N/A';
     }
 }

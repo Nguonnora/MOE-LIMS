@@ -10,19 +10,23 @@ class Sample extends Model
     use HasFactory;
 
     protected $fillable = [
-        'work_order_id', 'sample_code', 'sample_type', 'sample_matrix',
-        'sampling_location', 'sampling_date', 'sampling_time',
-        'sampling_method', 'container_type', 'preservation_method',
-        'received_date', 'received_time', 'received_by',
-        'sample_description', 'sample_condition',
-        'sample_quantity', 'quantity_unit', 'status'
+        'work_order_id',
+        'sample_code',
+        'sample_type',
+        'sample_description',
+        'sampling_date',
+        'province_id',
+        'district_id',
+        'commune_id',
+        'village_id',
+        'coordinate_system',
+        'coordinate_x',
+        'coordinate_y',
+        'status'
     ];
 
     protected $casts = [
         'sampling_date' => 'date',
-        'received_date' => 'date',
-        'sampling_time' => 'datetime',
-        'received_time' => 'datetime',
     ];
 
     public function workOrder()
@@ -30,14 +34,42 @@ class Sample extends Model
         return $this->belongsTo(WorkOrder::class);
     }
 
+    public function province()
+    {
+        return $this->belongsTo(Province::class);
+    }
+
+    public function district()
+    {
+        return $this->belongsTo(District::class);
+    }
+
+    public function commune()
+    {
+        return $this->belongsTo(Commune::class);
+    }
+
+    public function village()
+    {
+        return $this->belongsTo(Village::class);
+    }
+
     public function tests()
     {
         return $this->hasMany(SampleTest::class);
     }
 
-    public static function generateSampleCode($workOrderId)
+    public static function generateSampleCode($workOrderId, $sequence)
     {
-        $count = self::where('work_order_id', $workOrderId)->count() + 1;
-        return 'S-' . str_pad($workOrderId, 4, '0', STR_PAD_LEFT) . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+        $wo = WorkOrder::find($workOrderId);
+        if (!$wo) {
+            return 'S-' . str_pad($workOrderId, 6, '0', STR_PAD_LEFT);
+        }
+        // If amount_of_sample == 1, sample code = work order number
+        if ($wo->amount_of_sample == 1) {
+            return $wo->wo_number;
+        }
+        // Otherwise, append -01, -02, etc.
+        return $wo->wo_number . '-' . str_pad($sequence, 2, '0', STR_PAD_LEFT);
     }
 }
