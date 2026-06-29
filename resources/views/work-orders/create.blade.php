@@ -99,18 +99,15 @@
                     </div>
                 </div>
 
-                {{-- Sample Matrix --}}
+                {{-- Sample Matrix (only Liquid, Solid, Gas) --}}
                 <div class="col-md-3">
                     <div class="mb-3">
-                        <label for="sample_matrix" class="form-label">Sample Matrix</label>
-                        <select name="sample_matrix" id="sample_matrix" class="form-select">
+                        <label for="sample_matrix" class="form-label">Sample Matrix <span class="text-danger">*</span></label>
+                        <select name="sample_matrix" id="sample_matrix" class="form-select" required>
                             <option value="">Select</option>
-                            <option value="Water">Water</option>
-                            <option value="Soil">Soil</option>
-                            <option value="Air">Air</option>
-                            <option value="Wastewater">Wastewater</option>
-                            <option value="Sediment">Sediment</option>
-                            <option value="Biological">Biological</option>
+                            <option value="Liquid">Liquid</option>
+                            <option value="Solid">Solid</option>
+                            <option value="Gas">Gas</option>
                         </select>
                     </div>
                 </div>

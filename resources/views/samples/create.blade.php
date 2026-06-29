@@ -118,7 +118,7 @@
                 </div>
             </div>
 
-            {{-- Tests – Checkboxes --}}
+            {{-- Tests – Checkboxes (filtered by matrix) --}}
             <h5 class="border-bottom pb-2 mt-4">Tests</h5>
             <div class="row">
                 @forelse($testParameters as $param)
@@ -138,7 +138,8 @@
                     </div>
                 @empty
                     <div class="col-12">
-                        <p class="text-warning">No test parameters available. Please ask an admin to add some.</p>
+                        <p class="text-warning">No test parameters available for this sample matrix ({{ $workOrder->sample_matrix ?? 'Not set' }}).</p>
+                        <p>Please ask an admin to add appropriate test parameters.</p>
                     </div>
                 @endforelse
             </div>

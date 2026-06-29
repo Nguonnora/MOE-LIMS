@@ -35,7 +35,14 @@ class SampleController extends Controller
     {
         $this->checkPermission('canCreateWorkOrder');
         $provinces = Province::orderBy('name')->get();
-        $testParameters = TestParameter::orderBy('code')->get();
+
+        // Filter test parameters by matrix
+        $matrix = $workOrder->sample_matrix;
+        $testParameters = TestParameter::where(function ($query) use ($matrix) {
+            $query->where('matrix', $matrix)
+                ->orWhereNull('matrix');
+        })->orderBy('code')->get();
+
         return view('samples.create', compact('workOrder', 'provinces', 'testParameters'));
     }
 

@@ -22,9 +22,9 @@ class TestParameterController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'code' => 'required|string|max:50|unique:test_parameters',
             'name' => 'required|string|max:255',
             'category' => 'nullable|string|max:100',
+            'matrix' => 'nullable|string|in:Liquid,Solid,Gas',
             'unit' => 'nullable|string|max:50',
             'method' => 'nullable|string|max:255',
             'reference_method' => 'nullable|string|max:255',
@@ -36,6 +36,8 @@ class TestParameterController extends Controller
             'description' => 'nullable|string',
         ]);
 
+        // Auto-generate code based on matrix
+        $validated['code'] = TestParameter::generateCode($validated['matrix'] ?? null);
         $validated['is_subcontracted'] = $request->has('is_subcontracted');
 
         TestParameter::create($validated);
@@ -52,9 +54,9 @@ class TestParameterController extends Controller
     public function update(Request $request, TestParameter $testParameter)
     {
         $validated = $request->validate([
-            'code' => ['required', 'string', 'max:50', Rule::unique('test_parameters')->ignore($testParameter->id)],
             'name' => 'required|string|max:255',
             'category' => 'nullable|string|max:100',
+            'matrix' => 'nullable|string|in:Liquid,Solid,Gas',
             'unit' => 'nullable|string|max:50',
             'method' => 'nullable|string|max:255',
             'reference_method' => 'nullable|string|max:255',
@@ -67,6 +69,11 @@ class TestParameterController extends Controller
         ]);
 
         $validated['is_subcontracted'] = $request->has('is_subcontracted');
+
+        // If matrix changed, regenerate code
+        if ($testParameter->matrix != $validated['matrix']) {
+            $validated['code'] = TestParameter::generateCode($validated['matrix'] ?? null);
+        }
 
         $testParameter->update($validated);
 
