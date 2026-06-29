@@ -6,20 +6,26 @@
     <div class="card-body">
         <form action="{{ route('work-orders.store') }}" method="POST">
             @csrf
+
             <div class="row">
+                {{-- Reception Date --}}
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="reception_date" class="form-label">Reception Date <span class="text-danger">*</span></label>
                         <input type="date" name="reception_date" id="reception_date" class="form-control" value="{{ date('Y-m-d') }}" required>
                     </div>
                 </div>
+
+                {{-- Work Order ID (preview) --}}
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="wo_number" class="form-label">Work Order ID</label>
-                        <input type="text" class="form-control" value="Auto-generated" readonly style="background:#f0f0f0;">
+                        <input type="text" class="form-control" value="{{ $nextWONumber }}" readonly style="background:#f0f0f0;">
                         <small class="text-muted">Format: YYMMDD-### (automatically assigned on save)</small>
                     </div>
                 </div>
+
+                {{-- Client Name --}}
                 <div class="col-md-12">
                     <div class="mb-3">
                         <label for="client_id" class="form-label">Client Name <span class="text-danger">*</span></label>
@@ -36,24 +42,32 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- Project Description --}}
                 <div class="col-md-12">
                     <div class="mb-3">
                         <label for="project_description" class="form-label">Project Description</label>
                         <textarea name="project_description" id="project_description" class="form-control" rows="2"></textarea>
                     </div>
                 </div>
+
+                {{-- Contact Person --}}
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="contact_person" class="form-label">Contact Person</label>
                         <input type="text" name="contact_person" id="contact_person" class="form-control">
                     </div>
                 </div>
+
+                {{-- Phone --}}
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="phone" class="form-label">Phone (Telegram)</label>
                         <input type="text" name="phone" id="phone" class="form-control">
                     </div>
                 </div>
+
+                {{-- Purpose of Analysis --}}
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="purpose_id" class="form-label">Purpose of Analysis</label>
@@ -72,6 +86,8 @@
                         <small class="text-muted">Select existing or type a new one.</small>
                     </div>
                 </div>
+
+                {{-- Priority --}}
                 <div class="col-md-3">
                     <div class="mb-3">
                         <label for="priority" class="form-label">Priority <span class="text-danger">*</span></label>
@@ -82,6 +98,8 @@
                         </select>
                     </div>
                 </div>
+
+                {{-- Sample Matrix --}}
                 <div class="col-md-3">
                     <div class="mb-3">
                         <label for="sample_matrix" class="form-label">Sample Matrix</label>
@@ -96,6 +114,8 @@
                         </select>
                     </div>
                 </div>
+
+                {{-- Amount of Sample --}}
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="amount_of_sample" class="form-label">Number of Samples <span class="text-danger">*</span></label>
@@ -104,6 +124,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="d-flex gap-2 mt-3">
                 <button type="submit" class="btn btn-success">Create Work Order</button>
                 <a href="{{ route('work-orders.index') }}" class="btn btn-secondary">Cancel</a>

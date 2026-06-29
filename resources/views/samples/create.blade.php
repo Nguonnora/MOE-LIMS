@@ -8,24 +8,55 @@
             @csrf
 
             <div class="row">
+                {{-- Sample Code Preview --}}
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Sample Code (Preview)</label>
+                        @php
+                            $nextSequence = $workOrder->samples()->count() + 1;
+                            if ($workOrder->amount_of_sample == 1) {
+                                $previewCode = $workOrder->wo_number;
+                            } else {
+                                $roman = \App\Models\Sample::toRoman($nextSequence);
+                                $previewCode = $workOrder->wo_number . '-' . $roman;
+                            }
+                        @endphp
+                        <input type="text" class="form-control" value="{{ $previewCode }}" readonly style="background:#f0f0f0;">
+                        <small class="text-muted">
+                            @if($workOrder->amount_of_sample == 1)
+                                Single sample – code equals work order number.
+                            @else
+                                Assigned as Roman numeral (I, II, III, ...).
+                            @endif
+                        </small>
+                    </div>
+                </div>
+
+                {{-- Sample Type --}}
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="sample_type" class="form-label">Sample Type <span class="text-danger">*</span></label>
                         <input type="text" name="sample_type" id="sample_type" class="form-control" required>
                     </div>
                 </div>
+
+                {{-- Sampling Date --}}
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="sampling_date" class="form-label">Sampling Date <span class="text-danger">*</span></label>
                         <input type="date" name="sampling_date" id="sampling_date" class="form-control" value="{{ date('Y-m-d') }}" required>
                     </div>
                 </div>
+
+                {{-- Sample Description --}}
                 <div class="col-12">
                     <div class="mb-3">
                         <label for="sample_description" class="form-label">Sample Description</label>
                         <textarea name="sample_description" id="sample_description" class="form-control" rows="2"></textarea>
                     </div>
                 </div>
+
+                {{-- Geo Location --}}
                 <div class="col-md-3">
                     <div class="mb-3">
                         <label for="province_id" class="form-label">Province</label>
@@ -61,6 +92,8 @@
                         </select>
                     </div>
                 </div>
+
+                {{-- Coordinates --}}
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label for="coordinate_system" class="form-label">Coordinate System</label>
@@ -85,38 +118,31 @@
                 </div>
             </div>
 
+            {{-- Tests – Checkboxes --}}
             <h5 class="border-bottom pb-2 mt-4">Tests</h5>
-            <div id="tests-container">
-                <div class="test-item row g-3 mb-3 align-items-end">
-                    <div class="col-md-3">
-                        <label>Parameter</label>
-                        <select name="tests[0][test_parameter_id]" class="form-select test-parameter-select">
-                            <option value="">-- Select from library --</option>
-                            @foreach($testParameters as $param)
-                                <option value="{{ $param->id }}"
-                                    data-code="{{ $param->code }}"
-                                    data-name="{{ $param->name }}"
-                                    data-category="{{ $param->category }}"
-                                    data-unit="{{ $param->unit }}"
-                                    data-method="{{ $param->method }}"
-                                    data-reference="{{ $param->reference_method }}"
-                                    data-price="{{ $param->default_price }}">
-                                    {{ $param->code }} - {{ $param->name }}
-                                </option>
-                            @endforeach
-                        </select>
+            <div class="row">
+                @forelse($testParameters as $param)
+                    <div class="col-md-3 col-sm-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="test_ids[]" value="{{ $param->id }}" id="test_{{ $param->id }}">
+                            <label class="form-check-label" for="test_{{ $param->id }}">
+                                <strong>{{ $param->code }}</strong> – {{ $param->name }}
+                                @if($param->unit)
+                                    <br><small class="text-muted">Unit: {{ $param->unit }}</small>
+                                @endif
+                                @if($param->default_price)
+                                    <br><small class="text-muted">Price: ${{ number_format($param->default_price, 2) }}</small>
+                                @endif
+                            </label>
+                        </div>
                     </div>
-                    <div class="col-md-2"><label>Test Name</label><input type="text" name="tests[0][test_name]" class="form-control test-name" placeholder="Test Name" required></div>
-                    <div class="col-md-1"><label>Code</label><input type="text" name="tests[0][test_code]" class="form-control test-code" placeholder="Code"></div>
-                    <div class="col-md-2"><label>Category</label><input type="text" name="tests[0][test_category]" class="form-control test-category" placeholder="Category"></div>
-                    <div class="col-md-2"><label>Parameter</label><input type="text" name="tests[0][parameter]" class="form-control test-parameter" placeholder="Parameter"></div>
-                    <div class="col-md-1"><label>Unit</label><input type="text" name="tests[0][unit]" class="form-control test-unit" placeholder="Unit"></div>
-                    <div class="col-md-1"><label>Price</label><input type="number" step="0.01" name="tests[0][price]" class="form-control test-price" placeholder="Price" value="0"></div>
-                    <div class="col-md-12"><label>Method</label><input type="text" name="tests[0][method]" class="form-control test-method" placeholder="Method"><input type="hidden" name="tests[0][reference_method]" class="test-reference-method"></div>
-                    <div class="col-md-12 mt-2"><button type="button" class="btn btn-sm btn-danger remove-test" style="display:none;">Remove</button></div>
-                </div>
+                @empty
+                    <div class="col-12">
+                        <p class="text-warning">No test parameters available. Please ask an admin to add some.</p>
+                    </div>
+                @endforelse
             </div>
-            <button type="button" class="btn btn-sm btn-secondary" id="add-test">Add Another Test</button>
+            <small class="text-muted">Select all tests that apply to this sample.</small>
 
             <div class="mt-4">
                 <button type="submit" class="btn btn-success">Save Sample & Tests</button>
@@ -128,76 +154,15 @@
 
 @push('scripts')
 <script>
-    let testIndex = 1;
-
-    function populateTestFields(selectElement) {
-        const row = selectElement.closest('.test-item');
-        const selectedOption = selectElement.options[selectElement.selectedIndex];
-        if (selectedOption.value) {
-            row.querySelector('.test-name').value = selectedOption.dataset.name || '';
-            row.querySelector('.test-code').value = selectedOption.dataset.code || '';
-            row.querySelector('.test-category').value = selectedOption.dataset.category || '';
-            row.querySelector('.test-parameter').value = selectedOption.dataset.parameter || '';
-            row.querySelector('.test-unit').value = selectedOption.dataset.unit || '';
-            row.querySelector('.test-method').value = selectedOption.dataset.method || '';
-            row.querySelector('.test-reference-method').value = selectedOption.dataset.reference || '';
-            row.querySelector('.test-price').value = selectedOption.dataset.price || 0;
-        } else {
-            row.querySelector('.test-name').value = '';
-            row.querySelector('.test-code').value = '';
-            row.querySelector('.test-category').value = '';
-            row.querySelector('.test-parameter').value = '';
-            row.querySelector('.test-unit').value = '';
-            row.querySelector('.test-method').value = '';
-            row.querySelector('.test-reference-method').value = '';
-            row.querySelector('.test-price').value = 0;
-        }
-    }
-
-    document.addEventListener('change', function(e) {
-        if (e.target.classList.contains('test-parameter-select')) {
-            populateTestFields(e.target);
-        }
-    });
-
-    document.getElementById('add-test').addEventListener('click', function() {
-        const container = document.getElementById('tests-container');
-        const templateRow = container.querySelector('.test-item');
-        const newRow = templateRow.cloneNode(true);
-        const inputs = newRow.querySelectorAll('[name^="tests[0]"]');
-        inputs.forEach(input => {
-            const name = input.getAttribute('name');
-            if (name) {
-                input.setAttribute('name', name.replace('tests[0]', 'tests[' + testIndex + ']'));
-            }
-            if (!input.classList.contains('test-parameter-select')) {
-                input.value = '';
-            } else {
-                input.selectedIndex = 0;
-            }
-        });
-        const removeBtn = newRow.querySelector('.remove-test');
-        if (removeBtn) removeBtn.style.display = 'inline-block';
-        container.appendChild(newRow);
-        testIndex++;
-    });
-
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('remove-test')) {
-            const row = e.target.closest('.test-item');
-            if (row && document.querySelectorAll('.test-item').length > 1) {
-                row.remove();
-            } else {
-                alert('You must keep at least one test.');
-            }
-        }
-    });
-
-    // ---- Dynamic Geo dropdowns ----
+    // ---- Dynamic Geo dropdowns with correct URLs ----
     const provinceSelect = document.getElementById('province_id');
     const districtSelect = document.getElementById('district_id');
     const communeSelect = document.getElementById('commune_id');
     const villageSelect = document.getElementById('village_id');
+
+    const districtUrl = '{{ route("samples.districts", ":provinceId") }}';
+    const communeUrl = '{{ route("samples.communes", ":districtId") }}';
+    const villageUrl = '{{ route("samples.villages", ":communeId") }}';
 
     provinceSelect.addEventListener('change', function() {
         const provinceId = this.value;
@@ -208,7 +173,8 @@
         communeSelect.innerHTML = '<option value="">Select district first</option>';
         villageSelect.innerHTML = '<option value="">Select commune first</option>';
         if (provinceId) {
-            fetch('{{ route("samples.districts", "") }}/' + provinceId)
+            const url = districtUrl.replace(':provinceId', provinceId);
+            fetch(url)
                 .then(res => res.json())
                 .then(data => {
                     districtSelect.disabled = false;
@@ -227,7 +193,8 @@
         communeSelect.innerHTML = '<option value="">Select district first</option>';
         villageSelect.innerHTML = '<option value="">Select commune first</option>';
         if (districtId) {
-            fetch('{{ route("samples.communes", "") }}/' + districtId)
+            const url = communeUrl.replace(':districtId', districtId);
+            fetch(url)
                 .then(res => res.json())
                 .then(data => {
                     communeSelect.disabled = false;
@@ -244,7 +211,8 @@
         villageSelect.disabled = true;
         villageSelect.innerHTML = '<option value="">Select commune first</option>';
         if (communeId) {
-            fetch('{{ route("samples.villages", "") }}/' + communeId)
+            const url = villageUrl.replace(':communeId', communeId);
+            fetch(url)
                 .then(res => res.json())
                 .then(data => {
                     villageSelect.disabled = false;

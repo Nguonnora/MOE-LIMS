@@ -22,7 +22,8 @@ class WorkOrderController extends Controller
         $this->checkPermission('canCreateWorkOrder');
         $clients = Client::where('is_active', true)->orderBy('name')->get();
         $purposes = Purpose::orderBy('name')->get();
-        return view('work-orders.create', compact('clients', 'purposes'));
+        $nextWONumber = WorkOrder::generateWONumber(); // preview the next number
+        return view('work-orders.create', compact('clients', 'purposes', 'nextWONumber'));
     }
 
     public function store(Request $request)

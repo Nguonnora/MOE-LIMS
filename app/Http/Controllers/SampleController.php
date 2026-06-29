@@ -55,25 +55,13 @@ class SampleController extends Controller
             'coordinate_system' => 'required|in:DD,UTM,N/A',
             'coordinate_x' => 'nullable|string|max:50',
             'coordinate_y' => 'nullable|string|max:50',
-            'tests' => 'required|array|min:1',
-            'tests.*.test_name' => 'required|string',
-            'tests.*.test_code' => 'nullable|string',
-            'tests.*.test_category' => 'nullable|string',
-            'tests.*.parameter' => 'nullable|string',
-            'tests.*.unit' => 'nullable|string',
-            'tests.*.method' => 'nullable|string',
-            'tests.*.reference_method' => 'nullable|string',
-            'tests.*.detection_limit' => 'nullable|numeric',
-            'tests.*.quantification_limit' => 'nullable|numeric',
-            'tests.*.price' => 'nullable|numeric|min:0',
+            'test_ids' => 'required|array|min:1',   // at least one test must be selected
+            'test_ids.*' => 'exists:test_parameters,id',
         ]);
 
-        // Determine sequence number for sample code
-        $sampleCount = $workOrder->samples()->count() + 1;
-        $sampleCode = Sample::generateSampleCode($workOrder->id, $sampleCount);
-
+        // Create Sample
         $sample = $workOrder->samples()->create([
-            'sample_code' => $sampleCode,
+            'sample_code' => Sample::generateSampleCode($workOrder->id, $workOrder->samples()->count() + 1),
             'sample_type' => $validated['sample_type'],
             'sample_description' => $validated['sample_description'],
             'sampling_date' => $validated['sampling_date'],
@@ -87,12 +75,26 @@ class SampleController extends Controller
             'status' => 'received',
         ]);
 
-        // Create tests
+        // Create Tests from selected test parameters
         $totalTestsPrice = 0;
-        foreach ($validated['tests'] as $testData) {
-            unset($testData['test_parameter_id']);
-            $test = $sample->tests()->create($testData);
-            $totalTestsPrice += $testData['price'] ?? 0;
+        foreach ($validated['test_ids'] as $testId) {
+            $parameter = TestParameter::findOrFail($testId);
+            $test = $sample->tests()->create([
+                'test_code' => $parameter->code,
+                'test_name' => $parameter->name,
+                'test_category' => $parameter->category,
+                'parameter' => $parameter->name, // use name as parameter
+                'unit' => $parameter->unit,
+                'method' => $parameter->method,
+                'reference_method' => $parameter->reference_method,
+                'detection_limit' => $parameter->detection_limit,
+                'quantification_limit' => $parameter->quantification_limit,
+                'accreditation' => $parameter->accreditation,
+                'is_subcontracted' => $parameter->is_subcontracted,
+                'subcontracted_lab' => $parameter->subcontracted_lab,
+                'price' => $parameter->default_price,
+            ]);
+            $totalTestsPrice += $parameter->default_price ?? 0;
             $test->result()->create(['status' => 'pending']);
         }
 
