@@ -48,6 +48,7 @@
                                 </form>
                             @endif
                             @if(in_array($wo->status, ['draft', 'submitted']) && $wo->samples->count() < $wo->amount_of_sample && in_array(auth()->user()->role, ['admin', 'receptionist']))
+                                {{-- Use the correct route: samples.create with workOrder parameter --}}
                                 <a href="{{ route('samples.create', $wo) }}" class="btn btn-sm btn-primary">Add Sample</a>
                             @endif
                         </td>

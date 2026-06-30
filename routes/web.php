@@ -14,22 +14,14 @@ use App\Http\Controllers\ClientController;
 use App\Models\TestParameter;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
-
 Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// Dashboard
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-// Authenticated routes
 Route::middleware('auth')->group(function () {
 
     // Profile
@@ -37,23 +29,24 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // ==================== WORK ORDERS ====================
+    // Work Orders
     Route::resource('work-orders', WorkOrderController::class);
     Route::post('purposes', [WorkOrderController::class, 'storePurpose'])->name('purposes.store');
 
     // ==================== SAMPLE REGISTRATION ====================
-    // The main sample resource (create, store, index, show, etc.)
-    Route::resource('samples', SampleController::class)->parameters([
-        'samples' => 'workOrder' // binds {sample} to WorkOrder in controller
-    ]);
+    // List work orders for sample registration
+    Route::get('samples', [SampleController::class, 'index'])->name('samples.index');
 
-    // AJAX endpoints for cascading geo dropdowns (must be defined BEFORE the resource show route)
+    // Create a new sample for a specific work order
+    Route::get('samples/{workOrder}/create', [SampleController::class, 'create'])->name('samples.create');
+    Route::post('samples/{workOrder}', [SampleController::class, 'store'])->name('samples.store');
+
+    // AJAX endpoints for cascading geo dropdowns
     Route::get('samples/districts/{provinceId}', [SampleController::class, 'getDistricts'])->name('samples.districts');
     Route::get('samples/communes/{districtId}', [SampleController::class, 'getCommunes'])->name('samples.communes');
     Route::get('samples/villages/{communeId}', [SampleController::class, 'getVillages'])->name('samples.villages');
 
     // ==================== TEST RESULTS ====================
-    // These routes work directly with the Sample model (no resource binding issue)
     Route::get('samples/{sample}/tests', [TestResultController::class, 'index'])->name('samples.tests.index');
     Route::post('samples/{sample}/tests/{sampleTest}/result', [TestResultController::class, 'store'])->name('samples.tests.result.store');
     Route::put('samples/{sample}/tests/{sampleTest}/result', [TestResultController::class, 'update'])->name('samples.tests.result.update');
@@ -82,5 +75,4 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-// Load authentication routes (login, logout, etc.)
 require __DIR__.'/auth.php';

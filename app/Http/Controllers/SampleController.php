@@ -31,6 +31,7 @@ class SampleController extends Controller
 
     public function create(WorkOrder $workOrder)
     {
+        
         $this->checkPermission('canCreateWorkOrder');
         $provinces = $this->geoService->getProvinces();
         $testParameters = TestParameter::where(function ($query) use ($workOrder) {
