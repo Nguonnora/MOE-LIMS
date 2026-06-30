@@ -76,14 +76,7 @@
             <div class="card-body">
                 @if(isset($recentWorkOrders) && $recentWorkOrders->count() > 0)
                     <table class="table table-sm table-striped">
-                        <thead>
-                            <tr>
-                                <th>WO #</th>
-                                <th>Client</th>
-                                <th>Status</th>
-                                <th>Samples</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>WO #</th><th>Client</th><th>Status</th><th>Samples</th></tr></thead>
                         <tbody>
                             @foreach($recentWorkOrders as $wo)
                             <tr>

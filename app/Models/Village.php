@@ -9,10 +9,10 @@ class Village extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['commune_id', 'name', 'code'];
+    protected $fillable = ['code', 'commune_code', 'name_kh', 'name_en', 'name'];
 
     public function commune()
     {
-        return $this->belongsTo(Commune::class);
+        return $this->belongsTo(Commune::class, 'commune_code', 'code');
     }
 }

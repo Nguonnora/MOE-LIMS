@@ -5,21 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\WorkOrder;
 use App\Models\Sample;
 use App\Models\TestParameter;
-use App\Models\Province;
-use App\Models\District;
-use App\Models\Commune;
-use App\Models\Village;
+use App\Services\GeoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class SampleController extends Controller
 {
-    public function __construct()
+    protected $geoService;
+
+    public function __construct(GeoService $geoService)
     {
         $this->middleware('auth');
+        $this->geoService = $geoService;
     }
 
-    // List work orders to add samples
     public function index()
     {
         $this->checkPermission('canCreateWorkOrder');
@@ -30,23 +29,18 @@ class SampleController extends Controller
         return view('samples.index', compact('workOrders'));
     }
 
-    // Show form to add a sample to a specific work order
     public function create(WorkOrder $workOrder)
     {
         $this->checkPermission('canCreateWorkOrder');
-        $provinces = Province::orderBy('name')->get();
-
-        // Filter test parameters by matrix
-        $matrix = $workOrder->sample_matrix;
-        $testParameters = TestParameter::where(function ($query) use ($matrix) {
-            $query->where('matrix', $matrix)
-                ->orWhereNull('matrix');
+        $provinces = $this->geoService->getProvinces();
+        $testParameters = TestParameter::where(function ($query) use ($workOrder) {
+            $matrix = $workOrder->sample_matrix;
+            $query->where('matrix', $matrix)->orWhereNull('matrix');
         })->orderBy('code')->get();
 
         return view('samples.create', compact('workOrder', 'provinces', 'testParameters'));
     }
 
-    // Store sample and tests
     public function store(Request $request, WorkOrder $workOrder)
     {
         $this->checkPermission('canCreateWorkOrder');
@@ -55,18 +49,17 @@ class SampleController extends Controller
             'sample_type' => 'required|string|max:255',
             'sample_description' => 'nullable|string',
             'sampling_date' => 'required|date',
-            'province_id' => 'nullable|exists:provinces,id',
-            'district_id' => 'nullable|exists:districts,id',
-            'commune_id' => 'nullable|exists:communes,id',
-            'village_id' => 'nullable|exists:villages,id',
+            'province_id' => 'nullable|string',
+            'district_id' => 'nullable|string',
+            'commune_id' => 'nullable|string',
+            'village_id' => 'nullable|string',
             'coordinate_system' => 'required|in:DD,UTM,N/A',
             'coordinate_x' => 'nullable|string|max:50',
             'coordinate_y' => 'nullable|string|max:50',
-            'test_ids' => 'required|array|min:1',   // at least one test must be selected
+            'test_ids' => 'required|array|min:1',
             'test_ids.*' => 'exists:test_parameters,id',
         ]);
 
-        // Create Sample
         $sample = $workOrder->samples()->create([
             'sample_code' => Sample::generateSampleCode($workOrder->id, $workOrder->samples()->count() + 1),
             'sample_type' => $validated['sample_type'],
@@ -82,7 +75,6 @@ class SampleController extends Controller
             'status' => 'received',
         ]);
 
-        // Create Tests from selected test parameters
         $totalTestsPrice = 0;
         foreach ($validated['test_ids'] as $testId) {
             $parameter = TestParameter::findOrFail($testId);
@@ -90,7 +82,7 @@ class SampleController extends Controller
                 'test_code' => $parameter->code,
                 'test_name' => $parameter->name,
                 'test_category' => $parameter->category,
-                'parameter' => $parameter->name, // use name as parameter
+                'parameter' => $parameter->name,
                 'unit' => $parameter->unit,
                 'method' => $parameter->method,
                 'reference_method' => $parameter->reference_method,
@@ -105,7 +97,6 @@ class SampleController extends Controller
             $test->result()->create(['status' => 'pending']);
         }
 
-        // Update work order total and status
         $workOrder->update([
             'total_amount' => $workOrder->total_amount + $totalTestsPrice,
             'status' => 'submitted',
@@ -115,24 +106,24 @@ class SampleController extends Controller
             ->with('success', 'Sample and tests added successfully.');
     }
 
-    // AJAX: get districts by province
+    // ---- AJAX endpoints ----
     public function getDistricts($provinceId)
     {
-        $districts = District::where('province_id', $provinceId)->orderBy('name')->get();
+        $districts = $this->geoService->getDistricts($provinceId);
+        \Log::info("Districts for province $provinceId: " . count($districts) . " found.");
         return response()->json($districts);
     }
 
-    // AJAX: get communes by district
     public function getCommunes($districtId)
     {
-        $communes = Commune::where('district_id', $districtId)->orderBy('name')->get();
+        \Log::info("AJAX request for communes with districtId: $districtId");
+        $communes = $this->geoService->getCommunes($districtId);
         return response()->json($communes);
     }
 
-    // AJAX: get villages by commune
     public function getVillages($communeId)
     {
-        $villages = Village::where('commune_id', $communeId)->orderBy('name')->get();
+        $villages = $this->geoService->getVillages($communeId);
         return response()->json($villages);
     }
 }

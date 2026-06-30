@@ -20,7 +20,6 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Redirect root to login
 Route::get('/', function () {
     return redirect()->route('login');
 });
@@ -43,23 +42,18 @@ Route::middleware('auth')->group(function () {
     Route::post('purposes', [WorkOrderController::class, 'storePurpose'])->name('purposes.store');
 
     // ==================== SAMPLE REGISTRATION ====================
-    // This handles adding samples to existing work orders
-    Route::prefix('samples')->name('samples.')->group(function () {
-        // List work orders available for sample registration
-        Route::get('/', [SampleController::class, 'index'])->name('index');
-        // Show form to add a sample to a specific work order
-        Route::get('{workOrder}/create', [SampleController::class, 'create'])->name('create');
-        // Store the sample and its tests
-        Route::post('{workOrder}', [SampleController::class, 'store'])->name('store');
+    // The main sample resource (create, store, index, show, etc.)
+    Route::resource('samples', SampleController::class)->parameters([
+        'samples' => 'workOrder' // binds {sample} to WorkOrder in controller
+    ]);
 
-        // AJAX endpoints for Cambodia geo data
-        Route::get('districts/{provinceId}', [SampleController::class, 'getDistricts'])->name('districts');
-        Route::get('communes/{districtId}', [SampleController::class, 'getCommunes'])->name('communes');
-        Route::get('villages/{communeId}', [SampleController::class, 'getVillages'])->name('villages');
-    });
+    // AJAX endpoints for cascading geo dropdowns (must be defined BEFORE the resource show route)
+    Route::get('samples/districts/{provinceId}', [SampleController::class, 'getDistricts'])->name('samples.districts');
+    Route::get('samples/communes/{districtId}', [SampleController::class, 'getCommunes'])->name('samples.communes');
+    Route::get('samples/villages/{communeId}', [SampleController::class, 'getVillages'])->name('samples.villages');
 
     // ==================== TEST RESULTS ====================
-    // These routes work directly with the Sample model
+    // These routes work directly with the Sample model (no resource binding issue)
     Route::get('samples/{sample}/tests', [TestResultController::class, 'index'])->name('samples.tests.index');
     Route::post('samples/{sample}/tests/{sampleTest}/result', [TestResultController::class, 'store'])->name('samples.tests.result.store');
     Route::put('samples/{sample}/tests/{sampleTest}/result', [TestResultController::class, 'update'])->name('samples.tests.result.update');
@@ -88,5 +82,5 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-// Load authentication routes (login, logout, registration, password reset, etc.)
+// Load authentication routes (login, logout, etc.)
 require __DIR__.'/auth.php';

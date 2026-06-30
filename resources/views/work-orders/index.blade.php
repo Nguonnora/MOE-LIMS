@@ -31,7 +31,7 @@
                     <tr>
                         <td><strong>{{ $wo->wo_number }}</strong></td>
                         <td>{{ $wo->client->name ?? 'N/A' }}</td>
-                        <td>{{ $wo->reception_date->format('d/m/Y') }}</td>
+                        <td>{{ $wo->reception_date ? $wo->reception_date->format('d/m/Y') : '-' }}</td>
                         <td><span class="badge bg-{{ $wo->priority == 'high' ? 'danger' : ($wo->priority == 'medium' ? 'warning' : 'info') }}">{{ ucfirst($wo->priority) }}</span></td>
                         <td><span class="badge bg-{{ $wo->status == 'completed' ? 'success' : ($wo->status == 'cancelled' ? 'danger' : 'primary') }}">{{ ucfirst($wo->status) }}</span></td>
                         <td>{{ $wo->samples->count() }}</td>

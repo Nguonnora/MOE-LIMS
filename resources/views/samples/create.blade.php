@@ -6,7 +6,6 @@
     <div class="card-body">
         <form action="{{ route('samples.store', $workOrder) }}" method="POST">
             @csrf
-
             <div class="row">
                 {{-- Sample Code Preview --}}
                 <div class="col-md-6">
@@ -22,13 +21,16 @@
                             }
                         @endphp
                         <input type="text" class="form-control" value="{{ $previewCode }}" readonly style="background:#f0f0f0;">
-                        <small class="text-muted">
-                            @if($workOrder->amount_of_sample == 1)
-                                Single sample – code equals work order number.
-                            @else
-                                Assigned as Roman numeral (I, II, III, ...).
-                            @endif
-                        </small>
+                        <small class="text-muted">Assigned as Roman numeral (I, II, III, ...).</small>
+                    </div>
+                </div>
+
+                {{-- Sample Matrix Preview --}}
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Sample Matrix (Preview)</label>
+                        <input type="text" class="form-control" value="{{ $workOrder->sample_matrix ?? 'Not set' }}" readonly style="background:#f0f0f0;">
+                        <small class="text-muted">From work order.</small>
                     </div>
                 </div>
 
@@ -56,14 +58,14 @@
                     </div>
                 </div>
 
-                {{-- Geo Location --}}
+                {{-- Geo Location (cascading dropdowns) --}}
                 <div class="col-md-3">
                     <div class="mb-3">
                         <label for="province_id" class="form-label">Province</label>
                         <select name="province_id" id="province_id" class="form-select">
                             <option value="">Select</option>
                             @foreach($provinces as $province)
-                                <option value="{{ $province->id }}">{{ $province->name }}</option>
+                                <option value="{{ $province['id'] }}">{{ $province['name'] }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -118,7 +120,7 @@
                 </div>
             </div>
 
-            {{-- Tests – Checkboxes (filtered by matrix) --}}
+            {{-- Tests – Checkboxes --}}
             <h5 class="border-bottom pb-2 mt-4">Tests</h5>
             <div class="row">
                 @forelse($testParameters as $param)
@@ -155,7 +157,6 @@
 
 @push('scripts')
 <script>
-    // ---- Dynamic Geo dropdowns with correct URLs ----
     const provinceSelect = document.getElementById('province_id');
     const districtSelect = document.getElementById('district_id');
     const communeSelect = document.getElementById('commune_id');
@@ -165,65 +166,98 @@
     const communeUrl = '{{ route("samples.communes", ":districtId") }}';
     const villageUrl = '{{ route("samples.villages", ":communeId") }}';
 
+    // Helper: populate a select dropdown with data
+    function populateSelect(select, data, defaultLabel, emptyMessage) {
+        select.disabled = true;
+        if (data && data.length > 0) {
+            select.disabled = false;
+            select.innerHTML = `<option value="">${defaultLabel}</option>`;
+            data.forEach(item => {
+                select.innerHTML += `<option value="${item.id}">${item.name}</option>`;
+            });
+        } else {
+            select.innerHTML = `<option value="">${emptyMessage || 'No data available'}</option>`;
+        }
+    }
+
+    // ---- Province → District ----
     provinceSelect.addEventListener('change', function() {
         const provinceId = this.value;
-        districtSelect.disabled = true;
-        communeSelect.disabled = true;
-        villageSelect.disabled = true;
-        districtSelect.innerHTML = '<option value="">Select province first</option>';
-        communeSelect.innerHTML = '<option value="">Select district first</option>';
-        villageSelect.innerHTML = '<option value="">Select commune first</option>';
+        // Reset lower dropdowns
+        populateSelect(districtSelect, [], 'Select province first', 'Select province first');
+        populateSelect(communeSelect, [], 'Select district first', 'Select district first');
+        populateSelect(villageSelect, [], 'Select commune first', 'Select commune first');
+
         if (provinceId) {
             const url = districtUrl.replace(':provinceId', provinceId);
+            console.log('Fetching districts for province:', provinceId, 'URL:', url);
             fetch(url)
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
                 .then(data => {
-                    districtSelect.disabled = false;
-                    districtSelect.innerHTML = '<option value="">Select district</option>';
-                    data.forEach(district => {
-                        districtSelect.innerHTML += `<option value="${district.id}">${district.name}</option>`;
-                    });
+                    console.log('Districts received:', data.length);
+                    populateSelect(districtSelect, data, 'Select district', 'No districts available for this province');
+                })
+                .catch(err => {
+                    console.error('Error fetching districts:', err);
+                    populateSelect(districtSelect, [], 'Error loading districts', 'Error loading districts');
                 });
         }
     });
 
+    // ---- District → Commune ----
     districtSelect.addEventListener('change', function() {
         const districtId = this.value;
-        communeSelect.disabled = true;
-        villageSelect.disabled = true;
-        communeSelect.innerHTML = '<option value="">Select district first</option>';
-        villageSelect.innerHTML = '<option value="">Select commune first</option>';
+        populateSelect(communeSelect, [], 'Select district first', 'Select district first');
+        populateSelect(villageSelect, [], 'Select commune first', 'Select commune first');
+
         if (districtId) {
             const url = communeUrl.replace(':districtId', districtId);
+            console.log('Fetching communes for district:', districtId, 'URL:', url);
             fetch(url)
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
                 .then(data => {
-                    communeSelect.disabled = false;
-                    communeSelect.innerHTML = '<option value="">Select commune</option>';
-                    data.forEach(commune => {
-                        communeSelect.innerHTML += `<option value="${commune.id}">${commune.name}</option>`;
-                    });
+                    console.log('Communes received:', data.length);
+                    populateSelect(communeSelect, data, 'Select commune', 'No communes available for this district');
+                })
+                .catch(err => {
+                    console.error('Error fetching communes:', err);
+                    populateSelect(communeSelect, [], 'Error loading communes', 'Error loading communes');
                 });
         }
     });
 
+    // ---- Commune → Village ----
     communeSelect.addEventListener('change', function() {
         const communeId = this.value;
-        villageSelect.disabled = true;
-        villageSelect.innerHTML = '<option value="">Select commune first</option>';
+        populateSelect(villageSelect, [], 'Select commune first', 'Select commune first');
+
         if (communeId) {
             const url = villageUrl.replace(':communeId', communeId);
+            console.log('Fetching villages for commune:', communeId, 'URL:', url);
             fetch(url)
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
                 .then(data => {
-                    villageSelect.disabled = false;
-                    villageSelect.innerHTML = '<option value="">Select village</option>';
-                    data.forEach(village => {
-                        villageSelect.innerHTML += `<option value="${village.id}">${village.name}</option>`;
-                    });
+                    console.log('Villages received:', data.length);
+                    populateSelect(villageSelect, data, 'Select village', 'No villages available for this commune');
+                })
+                .catch(err => {
+                    console.error('Error fetching villages:', err);
+                    populateSelect(villageSelect, [], 'Error loading villages', 'Error loading villages');
                 });
         }
     });
+
+    // Log initial state
+    console.log('Geo dropdowns initialized.');
 </script>
 @endpush
 @endsection

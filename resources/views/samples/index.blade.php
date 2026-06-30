@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Register Samples')
+@section('title', 'Sample Registration')
 @section('content')
 <div class="card">
     <div class="card-header">Select a Work Order to Add Samples</div>
@@ -11,7 +11,7 @@
                         <th>WO #</th>
                         <th>Client</th>
                         <th>Reception Date</th>
-                        <th>Samples Registered</th>
+                        <th>Registered Samples</th>
                         <th>Total Samples</th>
                         <th>Status</th>
                         <th>Action</th>
@@ -22,7 +22,7 @@
                     <tr>
                         <td><strong>{{ $wo->wo_number }}</strong></td>
                         <td>{{ $wo->client->name ?? 'N/A' }}</td>
-                        <td>{{ $wo->reception_date->format('d/m/Y') }}</td>
+                        <td>{{ $wo->reception_date ? $wo->reception_date->format('d/m/Y') : '-' }}</td>
                         <td>{{ $wo->samples->count() }}</td>
                         <td>{{ $wo->amount_of_sample }}</td>
                         <td><span class="badge bg-{{ $wo->status == 'completed' ? 'success' : ($wo->status == 'cancelled' ? 'danger' : 'primary') }}">{{ ucfirst($wo->status) }}</span></td>

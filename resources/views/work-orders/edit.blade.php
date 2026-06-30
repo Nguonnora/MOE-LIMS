@@ -22,7 +22,7 @@
                         <input type="text" name="contact_person" id="contact_person" class="form-control" value="{{ old('contact_person', $workOrder->contact_person) }}">
                     </div>
                     <div class="mb-3">
-                        <label for="phone" class="form-label">Phone (Telegram)</label>
+                        <label for="phone" class="form-label">Phone</label>
                         <input type="text" name="phone" id="phone" class="form-control" value="{{ old('phone', $workOrder->phone) }}">
                     </div>
                 </div>
@@ -103,7 +103,6 @@
 
 @push('scripts')
 <script>
-    // Quick Purpose Add (AJAX)
     document.getElementById('addPurposeBtn').addEventListener('click', function() {
         const nameInput = document.getElementById('purpose_name');
         const name = nameInput.value.trim();
@@ -127,9 +126,9 @@
                 select.appendChild(opt);
                 select.value = result.purpose.id;
                 nameInput.value = '';
-                alert('Purpose added!');
+                alert('Purpose added successfully!');
             } else {
-                alert('Error: ' + (result.message || 'Unknown error'));
+                alert('Error: ' + (result.message || 'Could not add purpose.'));
             }
         })
         .catch(err => alert('Network error.'));

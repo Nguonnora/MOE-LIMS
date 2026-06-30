@@ -15,15 +15,18 @@ return new class extends Migration
             $table->string('sample_type');
             $table->text('sample_description')->nullable();
             $table->date('sampling_date');
-            $table->foreignId('province_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('district_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('commune_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('village_id')->nullable()->constrained()->onDelete('set null');
+            // Geo columns – store API IDs as nullable integers (no foreign keys)
+            $table->unsignedBigInteger('province_id')->nullable();
+            $table->unsignedBigInteger('district_id')->nullable();
+            $table->unsignedBigInteger('commune_id')->nullable();
+            $table->unsignedBigInteger('village_id')->nullable();
             $table->enum('coordinate_system', ['DD', 'UTM', 'N/A'])->default('N/A');
-            $table->string('coordinate_x')->nullable(); // UTM X or Degree N
-            $table->string('coordinate_y')->nullable(); // UTM Y or Degree E
+            $table->string('coordinate_x')->nullable();
+            $table->string('coordinate_y')->nullable();
             $table->enum('status', ['received', 'in_progress', 'results_entered', 'approved', 'reported'])->default('received');
             $table->timestamps();
+
+            // Note: No foreign keys to provinces, districts, etc.
         });
     }
 

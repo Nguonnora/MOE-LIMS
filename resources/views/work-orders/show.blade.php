@@ -42,11 +42,11 @@
             <div class="col-md-6">
                 <h5>Work Order Details</h5>
                 <dl class="row">
-                    <dt class="col-sm-4">Reception Date</dt><dd class="col-sm-8">{{ $workOrder->reception_date->format('d/m/Y') }}</dd>
+                    <dt class="col-sm-4">Reception Date</dt><dd class="col-sm-8">{{ $workOrder->reception_date ? $workOrder->reception_date->format('d/m/Y') : 'N/A' }}</dd>
                     <dt class="col-sm-4">Priority</dt><dd class="col-sm-8"><span class="badge bg-{{ $workOrder->priority == 'high' ? 'danger' : ($workOrder->priority == 'medium' ? 'warning' : 'info') }}">{{ ucfirst($workOrder->priority) }}</span></dd>
                     <dt class="col-sm-4">Status</dt><dd class="col-sm-8"><span class="badge bg-{{ $workOrder->status == 'completed' ? 'success' : ($workOrder->status == 'cancelled' ? 'danger' : 'primary') }}">{{ ucfirst($workOrder->status) }}</span></dd>
                     <dt class="col-sm-4">Sample Matrix</dt><dd class="col-sm-8">{{ $workOrder->sample_matrix ?? 'N/A' }}</dd>
-                    <dt class="col-sm-4">Expected Samples</dt><dd class="col-sm-8">{{ $workOrder->amount_of_sample }}</dd>
+                    <dt class="col-sm-4">Sample Quantity</dt><dd class="col-sm-8">{{ $workOrder->amount_of_sample }}</dd>
                     <dt class="col-sm-4">Registered Samples</dt><dd class="col-sm-8">{{ $workOrder->samples->count() }}</dd>
                     <dt class="col-sm-4">Invoice</dt><dd class="col-sm-8">{{ $workOrder->invoice_number ?? 'Not generated' }}</dd>
                 </dl>
@@ -102,7 +102,7 @@
             @endif
         </div>
         @empty
-        <p>No samples registered yet.</p>
+        <p>No samples.</p>
         @endforelse
     </div>
 </div>

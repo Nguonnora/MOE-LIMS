@@ -12,7 +12,6 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             ClientSeeder::class,
             PurposeSeeder::class,
-            GeoSeeder::class,
             TestParameterSeeder::class,
             SampleSeeder::class, // if you have sample seeder
         ]);

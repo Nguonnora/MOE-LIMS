@@ -9,15 +9,15 @@ class Commune extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['district_id', 'name', 'code'];
+    protected $fillable = ['code', 'district_code', 'name_kh', 'name_en', 'name'];
 
     public function district()
     {
-        return $this->belongsTo(District::class);
+        return $this->belongsTo(District::class, 'district_code', 'code');
     }
 
     public function villages()
     {
-        return $this->hasMany(Village::class);
+        return $this->hasMany(Village::class, 'commune_code', 'code');
     }
 }
